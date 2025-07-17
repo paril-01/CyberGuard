@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #000;
+            color: #00ff9d;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .pass { background: rgba(0, 255, 0, 0.1); border-color: #0f0; }
+        .fail { background: rgba(255, 0, 0, 0.1); border-color: #f00; }
+        .warn { background: rgba(255, 255, 0, 0.1); border-color: #ff0; }
+        pre { background: #111; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ CyberGuard Diagnostic Report</h1>
+    <div id="results"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const results = [];
+        
+        function addResult(test, status, message, details = '') {
+            results.push({ test, status, message, details });
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            const container = document.getElementById('results');
+            container.innerHTML = results.map(result => `
+                <div class="test-result ${result.status}">
+                    <h3>${result.test}</h3>
+                    <p>${result.message}</p>
+                    ${result.details ? `<pre>${result.details}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Test 1: Three.js Availability
+        if (window.THREE) {
+            addResult('Three.js Library', 'pass', 'Three.js is loaded and available', `Version: ${THREE.REVISION}`);
+        } else {
+            addResult('Three.js Library', 'fail', 'Three.js is NOT available');
+        }
+        
+        // Test 2: CSS Files Loading
+        const stylesheets = Array.from(document.styleSheets);
+        addResult('CSS Loading', stylesheets.length > 0 ? 'pass' : 'fail', 
+                 `${stylesheets.length} stylesheets loaded`);
+        
+        // Test 3: Backend Connection
+        fetch('http://localhost:3000/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                addResult('Backend API', 'pass', 'Backend is responding', JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                addResult('Backend API', 'fail', 'Backend connection failed', error.toString());
+            });
+        
+        // Test 4: WebSocket Connection
+        try {
+            const ws = new WebSocket('ws://localhost:3000');
+            ws.onopen = () => {
+                addResult('WebSocket', 'pass', 'WebSocket connection successful');
+                ws.close();
+            };
+            ws.onerror = (error) => {
+                addResult('WebSocket', 'fail', 'WebSocket connection failed', error.toString());
+            };
+        } catch (error) {
+            addResult('WebSocket', 'fail', 'WebSocket initialization failed', error.toString());
+        }
+        
+        // Test 5: DOM Elements Check
+        setTimeout(() => {
+            const dashboard = document.querySelector('#dashboard');
+            const statsCards = document.querySelectorAll('.stats-card');
+            const threeDContainer = document.querySelector('#threeDVisualization');
+            const chartContainer = document.querySelector('#realTimeChart');
+            
+            addResult('DOM Elements', 
+                     dashboard ? 'pass' : 'fail',
+                     `Dashboard found: ${!!dashboard}, Stats cards: ${statsCards.length}, 3D container: ${!!threeDContainer}, Chart container: ${!!chartContainer}`);
+        }, 100);
+        
+        // Test 6: Font Loading
+        document.fonts.ready.then(() => {
+            const fontFaces = Array.from(document.fonts);
+            addResult('Font Loading', fontFaces.length > 0 ? 'pass' : 'warn', 
+                     `${fontFaces.length} fonts loaded`);
+        });
+        
+        // Test 7: Console Errors
+        let errorCount = 0;
+        const originalError = console.error;
+        console.error = function(...args) {
+            errorCount++;
+            originalError.apply(console, args);
+            addResult('Console Errors', 'warn', `${errorCount} console errors detected`, args.join(' '));
+        };
+        
+        // Test 8: Viewport and Layout
+        addResult('Viewport', 'pass', 
+                 `Window: ${window.innerWidth}x${window.innerHeight}, Device pixel ratio: ${window.devicePixelRatio}`);
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+/* Simple Chart Cards CSS */
+.simple-card {
+    flex: 1;
+    min-width: 600px;
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+    background-color: #0d1117;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    height: 600px;
+    position: relative;
+    border-radius: 6px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: borderPulse 6s infinite alternate;
+}
+
+.simple-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 35px rgba(0, 255, 255, 0.9);
+}
+
+/* Add corner accent elements */
+.simple-card::before,
+.simple-card::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #00ffff;
+    border-style: solid;
+    z-index: 1;
+}
+
+.simple-card::before {
+    top: 0;
+    left: 0;
+    border-width: 2px 0 0 2px;
+    border-top-left-radius: 4px;
+}
+
+.simple-card::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 2px 2px 0;
+    border-bottom-right-radius: 4px;
+}
+
+.simple-header {
+    background-color: #0d1117;
+    border-bottom: 2px solid #00ffff;
+    padding: 14px 0;
+    text-align: center;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.simple-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    animation: shimmer 4s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}
+
+.simple-header h3 {
+    color: #00ffff;
+    margin: 0;
+    font-size: 22px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.simple-chart-container {
+    width: 100%;
+    flex: 1;
+    position: relative;
+    background-color: #0d1117;
+}
+
+.simple-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.simple-visualization-container {
+    width: 100%;
+    flex: 1;
+    position: relative;
+    background-color: #0d1117;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.simple-visualization-container #threeDVisualization {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: radial-gradient(circle at center, rgba(0, 30, 60, 0.2), rgba(13, 17, 23, 1) 80%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Ensure content stays within bounds */
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Ensure dashboard grid layout works properly */
+.dashboard-content-row {
+    display: flex;
+    gap: 25px;
+    width: 100%;
+    position: relative;
+    margin: 30px 0;
+}
+
+/* Add cyber decorative elements */
+.dashboard-content-row::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    width: 5px;
+    height: 80%;
+    background: linear-gradient(to bottom, transparent, #00ffff, transparent);
+    transform: translateY(-50%);
+    border-radius: 10px;
+}
+
+/* Improve chart container styling */
+.simple-chart-container {
+    width: 100%;
+    flex: 1;
+    position: relative;
+    background-color: #0d1117;
+    background-image: 
+        radial-gradient(circle at 10% 10%, rgba(0, 255, 255, 0.03) 0%, transparent 30%),
+        radial-gradient(circle at 90% 90%, rgba(0, 255, 157, 0.03) 0%, transparent 30%);
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Add decorative grid lines */
+.simple-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+/* Special styling for the 3D threat map to match the Live Network Activity */
+#threat-map-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-color: #00ffff;
+}
+
+#threat-map-container .simple-header {
+    border-bottom-color: #00ffff;
+}
+
+#threat-map-container .simple-visualization-container {
+    background-color: #0d1117;
+    height: 100%;
+    flex: 1;
+}
+
+/* Ensure both panels are visually aligned */
+#threat-map-container,
+.simple-chart-container {
+    height: 100%;
+}
+
+/* Custom scrollbar for any scrollable content */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(13, 17, 23, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.8);
+}
+
+/* Blinking animation for LIVE text */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Border pulse animation for cards */
+@keyframes borderPulse {
+    0% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.7); }
+    50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.9); }
+    100% { box-shadow: 0 0 30px rgba(0, 255, 255, 0.7); }
+}
+
+.blink-text {
+    animation: blink 1.5s infinite;
+}
+
+/* Side by side layout for threat sections */
+.dashboard-content-row {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    width: 100%;
+    margin: 30px 0;
+    align-items: stretch;
+}
+
+.dashboard-content-row > div {
+    flex: 1;
+    overflow: hidden;
+    height: 600px;
+}
+
+/* Make the chart container scrollable if needed */
+#threatHeatmap {
+    overflow: auto;
+    height: 100%;
+}
+
+/* Threat card styling */
+.threat-card {
+    background: rgba(13, 17, 23, 0.7);
+    border: 1px solid #00ffff;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.threat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.threat-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.threat-type {
+    color: #00ffff;
+    font-weight: bold;
+}
+
+.threat-severity {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.severity-low { background-color: #39ff14; color: #000; }
+.severity-medium { background-color: #ffaa00; color: #000; }
+.severity-high { background-color: #ff3333; color: #fff; }
+.severity-critical { background-color: #ff0080; color: #fff; }
+
+.threat-target {
+    color: #ffffff;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.threat-confidence, .threat-time {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.threat-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.indicator-tag {
+    background-color: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+}

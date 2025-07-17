@@ -47,16 +47,18 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
-            styleSrcElem: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https:", "blob:"],
-            connectSrc: ["'self'", "ws:", "wss:", "https:"],
+            styleSrcElem: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            connectSrc: ["'self'", "https:", "ws:", "wss:"],
             objectSrc: ["'none'"],
             mediaSrc: ["'self'"],
             frameSrc: ["'none'"],
             scriptSrcAttr: ["'unsafe-inline'"],
-        },
+            upgradeInsecureRequests: []
+        }
     },
+    crossOriginEmbedderPolicy: false
 }));
 
 app.use(compression());
@@ -66,32 +68,19 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
 
 // Serve the main HTML file at root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'enhanced-index.html'));
-});
-
-// Serve static assets with proper MIME types
-app.get('/enhanced-styles.css', (req, res) => {
-    res.setHeader('Content-Type', 'text/css');
-    res.sendFile(path.join(__dirname, 'enhanced-styles.css'));
-});
-
-app.get('/theme-overrides.css', (req, res) => {
-    res.setHeader('Content-Type', 'text/css');
-    res.sendFile(path.join(__dirname, 'theme-overrides.css'));
-});
-
-app.get('/horizontal-layout.css', (req, res) => {
-    res.setHeader('Content-Type', 'text/css');
-    res.sendFile(path.join(__dirname, 'horizontal-layout.css'));
-});
-
-app.get('/enhanced-script.js', (req, res) => {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.sendFile(path.join(__dirname, 'enhanced-script.js'));
 });
 
 // Favicon route to prevent 404 errors
@@ -892,9 +881,6 @@ app.get('/api/analytics', (req, res) => {
         data: analytics
     });
 });
-
-// Serve static files
-app.use(express.static(__dirname));
 
 // 404 handler for missing files
 app.get('*', (req, res) => {

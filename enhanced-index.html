@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberGuard - Advanced Crypto Security Platform</title>
     <link rel="stylesheet" href="enhanced-styles.css">
-    <link rel="stylesheet" href="theme-overrides.css">
     <link rel="stylesheet" href="horizontal-layout-fixed.css">
-    <link rel="stylesheet" href="ui-centered-layout.css">
-    <link rel="stylesheet" href="common-styles.css">
+    <link rel="stylesheet" href="simple-chart-styles.css">
+    <link rel="stylesheet" href="threat-heatmap.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;900&display=swap');
@@ -35,17 +34,14 @@
         .threat-stat-danger { color: var(--cyber-danger-red); }
     </style>
     <!-- 3D and Visualization Libraries -->
-    <!-- Three.js ES Modules for better compatibility -->
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-        }
-    }
-    </script>
+    <!-- Three.js - Global build for compatibility -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
     <script src="https://unpkg.com/d3@7"></script>
+    <script src="simple-chart.js"></script>
+    <script src="network-legend.js"></script>
+    <script src="threat-heatmap.js"></script>
     <style>
         /* Enhanced cybersecurity styling */
         :root {
@@ -462,68 +458,80 @@
     <div class="container">
         <!-- Dashboard Page -->
         <div id="dashboard" class="page active">
-            <div class="dashboard-section">
-            <h1 class="glow-text">🛡️ CyberGuard Security Dashboard</h1>
+            <!-- Page Title at Top -->
+            <div class="page-header">
+                <h1 class="page-title">🛡️ CyberGuard Security Dashboard</h1>
+                <p class="page-subtitle">Real-time threat monitoring and wallet security analytics</p>
+            </div>
             
             <!-- Real-time Stats -->
-            <div class="stats-grid">
-                <div class="stat-card">
+            <div class="dashboard-grid">
+                <div class="stats-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-shield-check" style="color: var(--accent-cyber);"></i>
+                        <i class="fas fa-shield-check cyber-accent"></i>
                         <span class="stats-label">Threats Blocked</span>
                     </div>
-                    <div class="stats-value" id="threatsBlocked">--</div>
-                    <div style="font-size: 0.8rem; opacity: 0.7;">+23 in last hour</div>
+                    <div class="stats-value" id="threatsBlocked">15,869</div>
+                    <div class="stats-subtitle">+23 in last hour</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-wallet" style="color: var(--primary-cyber);"></i>
+                        <i class="fas fa-wallet cyber-primary"></i>
                         <span class="stats-label">Wallets Scanned</span>
                     </div>
-                    <div class="stats-value" id="walletsScanned">--</div>
-                    <div style="font-size: 0.8rem; opacity: 0.7;">+156 in last hour</div>
+                    <div class="stats-value" id="walletsScanned">2,34,556</div>
+                    <div class="stats-subtitle">+156 in last hour</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-code" style="color: var(--warning-cyber);"></i>
+                        <i class="fas fa-code cyber-warning"></i>
                         <span class="stats-label">Contracts Analyzed</span>
                     </div>
-                    <div class="stats-value" id="contractsAnalyzed">--</div>
-                    <div style="font-size: 0.8rem; opacity: 0.7;">+42 in last hour</div>
+                    <div class="stats-value" id="contractsAnalyzed">45,640</div>
+                    <div class="stats-subtitle">+42 in last hour</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-globe" style="color: var(--secondary-cyber);"></i>
+                        <i class="fas fa-globe cyber-secondary"></i>
                         <span class="stats-label">Phishing Sites</span>
                     </div>
-                    <div class="stats-value" id="phishingSites">--</div>
-                    <div style="font-size: 0.8rem; opacity: 0.7;">+12 detected today</div>
+                    <div class="stats-value" id="phishingSites">9,847</div>
+                    <div class="stats-subtitle">+12 detected today</div>
                 </div>
             </div>
 
-            <!-- Visualization and Charts Row - Side by Side -->
-            <div class="dashboard-content-row">
-                <!-- 3D Network Visualization -->
-                <div class="visualization-container">
-                    <h3 style="position: absolute; top: 1rem; left: 1rem; z-index: 10; color: var(--primary-cyber);">
-                        🌐 3D Threat Network Map
-                    </h3>
-                    <div id="threeDVisualization"></div>
+            <!-- Dashboard Features -->
+            <div class="features-row">
+                <!-- 3D Threat Visualization -->
+                <div id="threat-map-container" class="simple-card">
+                    <div class="simple-header">
+                        <h3>
+                            <i class="fas fa-globe" style="margin-right: 10px; color: #00d4ff; text-shadow: 0 0 12px rgba(0, 212, 255, 0.9);"></i> 
+                            3D THREAT NETWORK MAP 
+                            <span class="blink-text" style="font-size: 10px; vertical-align: super; margin-left: 8px; color: #ff3333; animation: blink 1.5s infinite; text-shadow: 0 0 8px rgba(255, 51, 51, 0.8);">LIVE</span>
+                        </h3>
+                    </div>
+                    <div class="simple-visualization-container">
+                        <div id="threeDVisualization" style="height: 100%; width: 100%; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"></div>
+                    </div>
                 </div>
 
                 <!-- Real-time Charts -->
-                <div class="chart-container">
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-cyber);">📊 Real-time Threat Activity</h3>
-                    <canvas id="realTimeChart"></canvas>
+                <div id="network-activity-container" class="simple-card">
+                    <div class="simple-header">
+                        <h3>⚡ LIVE NETWORK ACTIVITY</h3>
+                    </div>
+                    <div class="simple-chart-container">
+                        <canvas id="realTimeChart"></canvas>
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
 
@@ -581,12 +589,16 @@
             <h1 class="glow-text">⚠️ Active Threats Intelligence</h1>
             
             <div class="dashboard-content-row">
-                <div class="chart-container">
-                    <h3>🔥 Threat Heatmap</h3>
-                    <div id="threatHeatmap"></div>
+                <div class="chart-container simple-card" style="width: 50%; min-width: 400px; margin-right: 15px;">
+                    <div class="simple-header">
+                        <h3><i class="fas fa-fire" style="margin-right: 10px; color: #ff3333; text-shadow: 0 0 10px rgba(255, 51, 51, 0.7);"></i> Threat Heatmap</h3>
+                    </div>
+                    <div class="simple-chart-container">
+                        <div id="threatHeatmap"></div>
+                    </div>
                 </div>
 
-                <div id="threatsList" class="results-container">
+                <div id="threatsList" class="chart-container simple-card" style="width: 50%; min-width: 400px; margin-left: 15px;">
                     <!-- Threats list will be populated by JavaScript -->
                 </div>
             </div>
@@ -595,75 +607,121 @@
 
         <!-- Analytics Page -->
         <div id="analytics" class="page">
-            <div class="dashboard-section">
-            <h1 class="glow-text">📈 Advanced Analytics</h1>
+            <!-- Page Title at Top -->
+            <div class="page-header">
+                <h1 class="page-title">📈 Advanced Analytics</h1>
+                <p class="page-subtitle">Comprehensive threat analysis and security intelligence</p>
+            </div>
             
-            <div class="analytics-grid">
-                <div class="chart-container">
-                    <h3>📊 Threat Distribution</h3>
-                    <canvas id="threatDistributionChart"></canvas>
+            <!-- Analytics Features -->
+            <div class="features-row">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📊 Threat Distribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="threatDistributionChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="chart-container">
-                    <h3>📈 Security Trends (7 Days)</h3>
-                    <canvas id="securityTrendsChart"></canvas>
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📈 Security Trends (7 Days)</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="securityTrendsChart"></canvas>
+                    </div>
                 </div>
+            </div>
 
-                <div class="chart-container">
+            <!-- Full-width Geographic Analysis -->
+            <div class="feature-card full-width">
+                <div class="feature-header">
                     <h3>🌍 Geographic Threat Analysis</h3>
-                    <div id="geoThreatMap" style="width: 100%; height: 400px; display: flex; flex-direction: column; align-items: center;"></div>
+                </div>
+                <div class="map-container">
+                    <div id="geoThreatMap"></div>
                 </div>
             </div>
         </div>
 
         <!-- Monitor Page -->
+        <!-- Monitor Page -->
         <div id="monitor" class="page">
-            <div class="dashboard-section">
-            <h1 class="glow-text">👁️ Real-time Monitoring</h1>
+            <!-- Page Title at Top -->
+            <div class="page-header">
+                <h1 class="page-title">👁️ Real-time Monitoring</h1>
+                <p class="page-subtitle">Comprehensive system monitoring and threat detection</p>
+            </div>
             
-            <div class="stats-grid">
-                <div class="stat-card">
+            <!-- Monitor Stats Grid -->
+            <div class="dashboard-grid">
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-heartbeat" style="color: var(--accent-cyber);"></i>
+                        <i class="fas fa-heartbeat cyber-accent"></i>
                         <span class="stats-label">System Health</span>
                     </div>
                     <div class="stats-value" id="systemHealth">99.7%</div>
+                    <div class="stats-subtitle">All systems operational</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-clock" style="color: var(--primary-cyber);"></i>
+                        <i class="fas fa-clock cyber-primary"></i>
                         <span class="stats-label">Response Time</span>
                     </div>
                     <div class="stats-value" id="responseTime">23ms</div>
+                    <div class="stats-subtitle">Average latency</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-server" style="color: var(--warning-cyber);"></i>
+                        <i class="fas fa-server cyber-warning"></i>
                         <span class="stats-label">Active Monitors</span>
                     </div>
                     <div class="stats-value" id="activeMonitors">847</div>
+                    <div class="stats-subtitle">Nodes monitoring</div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
                     <div class="stats-header">
-                        <i class="fas fa-shield-virus" style="color: var(--danger-cyber);"></i>
+                        <i class="fas fa-shield-virus cyber-danger"></i>
                         <span class="stats-label">Blocked Attacks</span>
                     </div>
                     <div class="stats-value" id="blockedAttacks">2,439</div>
+                    <div class="stats-subtitle">+47 in last hour</div>
                 </div>
             </div>
 
-            <div class="chart-container">
-                <h3>⚡ Live Network Activity</h3>
-                <canvas id="networkActivityChart"></canvas>
-            </div>
+            <!-- Monitor Charts Row -->
+            <div class="features-row">
+                <!-- Live Network Activity -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>⚡ Live Network Activity</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="networkActivityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- System Performance -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📊 System Performance</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="systemPerformanceChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="enhanced-script.js"></script>
-    <script src="common-nav.js"></script>
 </body>
 </html>

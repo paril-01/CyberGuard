@@ -50,6 +50,14 @@ body {
     --cyber-glow-green: 0 0 20px rgba(0, 255, 65, 0.6);
     --cyber-glow-blue: 0 0 20px rgba(0, 212, 255, 0.6);
     --cyber-glow-purple: 0 0 20px rgba(191, 0, 255, 0.6);
+    
+    /* Compatibility variables for existing HTML */
+    --primary-cyber: #00ff41;
+    --accent-cyber: #00d4ff;
+    --secondary-cyber: #bf00ff;
+    --warning-cyber: #ff8c00;
+    --danger-cyber: #ff073a;
+    --text-secondary: #4ade80;
 }
 
 /* Matrix Digital Rain Background Effect */

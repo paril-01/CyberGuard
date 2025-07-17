@@ -17,7 +17,6 @@ class CyberGuardApp {
 
     async init() {
         this.setupNavigation();
-        this.setupScanInterface();
         this.setupWebSocket();
         this.initMatrixEffect();
         this.init3DVisualization();
@@ -53,28 +52,36 @@ class CyberGuardApp {
         const scanBtn = document.getElementById('scanBtn');
         const scanInput = document.getElementById('scanInput');
 
-        scanTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Handle quick scan buttons
-                if (tab.dataset.quickScan) {
-                    this.performQuickScan(tab.dataset.value, tab.dataset.quickScan);
-                    return;
-                }
-                
-                // Handle scan type selection
-                if (tab.dataset.scanType) {
-                    scanTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    this.currentScanType = tab.dataset.scanType;
-                    this.updateScanPlaceholder();
-                }
+        // Only setup if elements exist
+        if (scanTabs.length > 0) {
+            scanTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Handle quick scan buttons
+                    if (tab.dataset.quickScan) {
+                        this.performQuickScan(tab.dataset.value, tab.dataset.quickScan);
+                        return;
+                    }
+                    
+                    // Handle scan type selection
+                    if (tab.dataset.scanType) {
+                        scanTabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        this.currentScanType = tab.dataset.scanType;
+                        this.updateScanPlaceholder();
+                    }
+                });
             });
-        });
+        }
 
-        scanBtn.addEventListener('click', () => this.performScan());
-        scanInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performScan();
-        });
+        if (scanBtn) {
+            scanBtn.addEventListener('click', () => this.performScan());
+        }
+        
+        if (scanInput) {
+            scanInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.performScan();
+            });
+        }
     }
 
     setupWebSocket() {
@@ -151,10 +158,10 @@ class CyberGuardApp {
             return;
         }
 
-        // Check for Three.js availability
-        if (!window.THREE) {
+        // Check for Three.js availability with multiple checks
+        if (typeof THREE === 'undefined' || !window.THREE || !THREE.Scene) {
             console.warn('⚠️ Three.js not available, initializing 2D fallback');
-            this.init2DVisualization();
+            this.init2DFallback(container);
             return;
         }
 
@@ -171,15 +178,31 @@ class CyberGuardApp {
                 preserveDrawingBuffer: true 
             });
             
-            this.renderer.setSize(container.clientWidth, container.clientHeight);
+            this.renderer.setSize(Math.max(container.clientWidth, 1600), Math.max(container.clientHeight, 1200));
             this.renderer.setClearColor(0x000814, 0.1);
             this.renderer.shadowMap.enabled = true;
             this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
+            // Force canvas size to fill entire container
+            this.renderer.domElement.style.width = '100%';
+            this.renderer.domElement.style.height = '100%';
+            this.renderer.domElement.style.position = 'absolute';
+            this.renderer.domElement.style.top = '0';
+            this.renderer.domElement.style.left = '0';
+            this.renderer.domElement.style.margin = '0';
+            this.renderer.domElement.style.padding = '0';
+            this.renderer.domElement.style.borderRadius = '0';
+            
             container.appendChild(this.renderer.domElement);
+
+            // Add mouse interaction for node labels
+            this.setupMouseInteraction(container);
 
             // Create enhanced network visualization
             this.createAdvancedThreatNetwork();
+
+            // Add visual legend
+            this.createVisualizationLegend(container);
 
             // Enhanced lighting
             const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
@@ -194,8 +217,8 @@ class CyberGuardApp {
             pointLight.position.set(-50, -50, 50);
             this.scene.add(pointLight);
 
-            // Position camera
-            this.camera.position.set(0, 0, 80);
+            // Position camera for better perspective
+            this.camera.position.set(0, 0, 100);
 
             // Start animation loop
             this.animate3D();
@@ -212,7 +235,7 @@ class CyberGuardApp {
             console.log('✅ Enhanced 3D Visualization initialized successfully');
         } catch (error) {
             console.error('❌ Error initializing 3D visualization:', error);
-            this.init2DVisualization();
+            this.init2DFallback(container);
         }
     }
 
@@ -245,16 +268,32 @@ class CyberGuardApp {
         console.log('✅ Basic camera controls setup');
     }
 
-    init2DVisualization() {
+    init2DFallback(container) {
         // Fallback 2D visualization using Canvas API
-        const container = document.getElementById('threeDVisualization');
-        if (!container) return;
+        if (!container) {
+            container = document.getElementById('threeDVisualization');
+            if (!container) return;
+        }
+
+        // Clear container
+        container.innerHTML = '';
 
         const canvas = document.createElement('canvas');
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        canvas.style.background = 'linear-gradient(45deg, #0a0a0a 0%, #1a1a2e 100%)';
+        canvas.width = Math.max(container.clientWidth, 1600);
+        canvas.height = Math.max(container.clientHeight, 1200);
+        canvas.style.background = 'transparent';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.margin = '0';
+        canvas.style.padding = '0';
+        canvas.style.borderRadius = '0';
         container.appendChild(canvas);
+
+        // Add 2D visualization legend
+        this.create2DLegend(container);
 
         const ctx = canvas.getContext('2d');
         this.animate2D(ctx, canvas);
@@ -263,51 +302,178 @@ class CyberGuardApp {
     }
 
     animate2D(ctx, canvas) {
+        const threatTypes = ['Malware', 'Phishing', 'DDoS', 'Bot', 'Scam', 'Virus', 'Trojan', 'Worm'];
         const nodes = [];
-        for (let i = 0; i < 20; i++) {
+        
+        // Create central security hub
+        nodes.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: 0,
+            vy: 0,
+            radius: 12,
+            color: '#00ffff',
+            type: 'hub',
+            label: 'Security Hub'
+        });
+        
+        // Create threat nodes
+        for (let i = 0; i < 19; i++) {
+            const threatLevel = Math.random();
+            let color = '#00ff88'; // Green (safe)
+            let type = 'safe';
+            
+            if (threatLevel > 0.7) {
+                color = '#ff3333'; // Red (high threat)
+                type = 'threat';
+            } else if (threatLevel > 0.4) {
+                color = '#ffaa00'; // Orange (medium threat)
+                type = 'warning';
+            }
+            
             nodes.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
-                radius: Math.random() * 5 + 2,
-                color: `hsl(${120 + Math.random() * 60}, 70%, 50%)`
+                radius: 4 + Math.random() * 6,
+                color: color,
+                type: type,
+                label: threatTypes[i % threatTypes.length],
+                threatLevel: Math.floor(threatLevel * 100)
             });
         }
 
+        let animationTime = 0;
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            animationTime += 0.016;
             
-            // Update and draw nodes
-            nodes.forEach(node => {
+            nodes.forEach((node, index) => {
+                // Animate node movement
                 node.x += node.vx;
                 node.y += node.vy;
                 
+                // Bounce off walls
                 if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
                 if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
                 
+                // Draw node with glow effect
+                const glowSize = node.radius + Math.sin(animationTime * 2 + index) * 2;
+                
+                // Outer glow
+                const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, glowSize);
+                gradient.addColorStop(0, node.color);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, glowSize, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Main node
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
                 ctx.fillStyle = node.color;
                 ctx.fill();
                 
-                // Draw connections
+                // Node border
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw connections to nearby nodes
                 nodes.forEach(other => {
-                    const distance = Math.sqrt((node.x - other.x) ** 2 + (node.y - other.y) ** 2);
-                    if (distance < 100) {
-                        ctx.beginPath();
-                        ctx.moveTo(node.x, node.y);
-                        ctx.lineTo(other.x, other.y);
-                        ctx.strokeStyle = `rgba(0, 255, 136, ${0.3 - distance / 300})`;
-                        ctx.stroke();
+                    if (node !== other) {
+                        const distance = Math.sqrt((node.x - other.x) ** 2 + (node.y - other.y) ** 2);
+                        if (distance < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(node.x, node.y);
+                            ctx.lineTo(other.x, other.y);
+                            const opacity = (120 - distance) / 120 * 0.4;
+                            ctx.strokeStyle = `rgba(0, 255, 157, ${opacity})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
                     }
                 });
+                
+                // Draw labels for larger nodes or hub
+                if (node.type === 'hub' || node.radius > 7) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '10px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, node.x, node.y - node.radius - 5);
+                    
+                    if (node.type !== 'hub') {
+                        ctx.fillStyle = node.color;
+                        ctx.font = '8px monospace';
+                        ctx.fillText(`${node.threatLevel}%`, node.x, node.y + node.radius + 12);
+                    }
+                }
             });
+            
+            // Draw title
+            ctx.fillStyle = '#00ffff';
+            ctx.font = 'bold 14px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('Real-time Threat Network', 15, 25);
+            
+            // Draw stats
+            const threatCount = nodes.filter(n => n.type === 'threat').length;
+            const warningCount = nodes.filter(n => n.type === 'warning').length;
+            const safeCount = nodes.filter(n => n.type === 'safe').length;
+            
+            ctx.fillStyle = '#00ff9d';
+            ctx.font = '10px monospace';
+            ctx.fillText(`🔴 High Risk: ${threatCount}`, 15, canvas.height - 45);
+            ctx.fillText(`🟡 Medium Risk: ${warningCount}`, 15, canvas.height - 30);
+            ctx.fillText(`🟢 Low Risk: ${safeCount}`, 15, canvas.height - 15);
             
             requestAnimationFrame(animate);
         };
         
         animate();
+    }
+
+    create2DLegend(container) {
+        const legend = document.createElement('div');
+        legend.style.position = 'absolute';
+        legend.style.top = '10px';
+        legend.style.right = '10px';
+        legend.style.background = 'rgba(0, 31, 46, 0.9)';
+        legend.style.border = '1px solid #00ff9d';
+        legend.style.borderRadius = '8px';
+        legend.style.padding = '12px';
+        legend.style.fontSize = '11px';
+        legend.style.fontFamily = 'monospace';
+        legend.style.color = '#00ff9d';
+        legend.style.zIndex = '999';
+        legend.style.minWidth = '180px';
+
+        legend.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 8px; color: #00ffff; text-align: center;">🌐 Network Activity</div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+                <div style="width: 12px; height: 12px; background: #00ff88; border-radius: 50%; margin-right: 8px;"></div>
+                <span>Active Nodes</span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+                <div style="width: 12px; height: 12px; background: #ff3333; border-radius: 50%; margin-right: 8px;"></div>
+                <span>Threat Sources</span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+                <div style="width: 12px; height: 12px; background: #00ffff; border-radius: 50%; margin-right: 8px;"></div>
+                <span>Security Hubs</span>
+            </div>
+            <hr style="border: 1px solid #00ff9d; margin: 8px 0;">
+            <div style="font-size: 10px; color: #00d4ff; text-align: center;">
+                🔗 Real-time Network Map
+            </div>
+        `;
+
+        container.appendChild(legend);
     }
 
     createThreatNetwork() {
@@ -323,17 +489,25 @@ class CyberGuardApp {
             opacity: 0.8
         });
         const centralNode = new THREE.Mesh(centralGeometry, centralMaterial);
+        centralNode.userData = { type: 'central', label: 'Security Hub' };
         this.scene.add(centralNode);
         nodes.push(centralNode);
 
-        // Create threat nodes
+        // Create threat nodes with labels
+        const threatTypes = ['Malware', 'Phishing', 'DDoS', 'Ransomware', 'Bot', 'Scam', 'Fraud', 'Virus'];
         for (let i = 0; i < nodeCount; i++) {
             const geometry = new THREE.SphereGeometry(0.5 + Math.random() * 1, 16, 16);
             const threatLevel = Math.random();
             let color = 0x39ff14; // Green (safe)
+            let riskLevel = 'Low';
             
-            if (threatLevel > 0.7) color = 0xff3333; // Red (high threat)
-            else if (threatLevel > 0.4) color = 0xffaa00; // Orange (medium threat)
+            if (threatLevel > 0.7) {
+                color = 0xff3333; // Red (high threat)
+                riskLevel = 'High';
+            } else if (threatLevel > 0.4) {
+                color = 0xffaa00; // Orange (medium threat)
+                riskLevel = 'Medium';
+            }
             
             const material = new THREE.MeshBasicMaterial({ 
                 color: color,
@@ -342,6 +516,14 @@ class CyberGuardApp {
             });
             
             const node = new THREE.Mesh(geometry, material);
+            
+            // Add metadata for labeling
+            node.userData = { 
+                type: 'threat', 
+                label: threatTypes[i % threatTypes.length],
+                risk: riskLevel,
+                level: Math.floor(threatLevel * 100)
+            };
             
             // Position in 3D space
             const radius = 10 + Math.random() * 20;
@@ -521,6 +703,107 @@ class CyberGuardApp {
         
         // Add attack simulation vectors
         this.createAttackVectors();
+    }
+
+    setupMouseInteraction(container) {
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+
+        // Create tooltip element
+        this.tooltip = document.createElement('div');
+        this.tooltip.style.position = 'absolute';
+        this.tooltip.style.padding = '8px 12px';
+        this.tooltip.style.background = 'rgba(0, 31, 46, 0.95)';
+        this.tooltip.style.color = '#00ff9d';
+        this.tooltip.style.border = '1px solid #00ff9d';
+        this.tooltip.style.borderRadius = '6px';
+        this.tooltip.style.fontSize = '12px';
+        this.tooltip.style.fontFamily = 'monospace';
+        this.tooltip.style.pointerEvents = 'none';
+        this.tooltip.style.zIndex = '1000';
+        this.tooltip.style.display = 'none';
+        this.tooltip.style.boxShadow = '0 4px 12px rgba(0, 255, 157, 0.3)';
+        container.appendChild(this.tooltip);
+
+        // Mouse move handler
+        const onMouseMove = (event) => {
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const intersects = this.raycaster.intersectObjects(this.networkNodes || []);
+
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                if (object.userData && object.userData.label) {
+                    this.tooltip.innerHTML = `
+                        <div style="font-weight: bold; color: #00ffff;">${object.userData.label}</div>
+                        <div>Type: ${object.userData.type}</div>
+                        ${object.userData.risk ? `<div>Risk: <span style="color: ${object.userData.risk === 'High' ? '#ff3333' : object.userData.risk === 'Medium' ? '#ffaa00' : '#39ff14'}">${object.userData.risk}</span></div>` : ''}
+                        ${object.userData.level ? `<div>Level: ${object.userData.level}%</div>` : ''}
+                    `;
+                    this.tooltip.style.left = (event.clientX + 10) + 'px';
+                    this.tooltip.style.top = (event.clientY - 10) + 'px';
+                    this.tooltip.style.display = 'block';
+                    
+                    // Highlight hovered node
+                    object.material.emissive.setHex(0x333333);
+                } else {
+                    this.tooltip.style.display = 'none';
+                }
+            } else {
+                this.tooltip.style.display = 'none';
+                // Reset emission for all nodes
+                if (this.networkNodes) {
+                    this.networkNodes.forEach(node => {
+                        if (node.material && node.material.emissive) {
+                            node.material.emissive.setHex(0x000000);
+                        }
+                    });
+                }
+            }
+        };
+
+        container.addEventListener('mousemove', onMouseMove);
+    }
+
+    createVisualizationLegend(container) {
+        const legend = document.createElement('div');
+        legend.style.position = 'absolute';
+        legend.style.top = '25px';
+        legend.style.left = '25px';
+        legend.style.background = 'rgba(13, 17, 23, 0.8)';
+        legend.style.border = '1px solid #00ff9d';
+        legend.style.borderRadius = '0px';
+        legend.style.padding = '15px';
+        legend.style.fontSize = '12px';
+        legend.style.fontFamily = 'monospace';
+        legend.style.color = '#00ff9d';
+        legend.style.zIndex = '999';
+        legend.style.minWidth = '200px';
+
+        legend.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 12px; color: #00ffff;">🌐 Network Activity</div>
+            <div style="display: flex; align-items: center; margin: 8px 0;">
+                <div style="width: 14px; height: 14px; background: #00ff9d; border-radius: 50%; margin-right: 10px;"></div>
+                <span>Active Nodes</span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 8px 0;">
+                <div style="width: 14px; height: 14px; background: #ff3333; border-radius: 50%; margin-right: 10px;"></div>
+                <span>Threat Sources</span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 8px 0;">
+                <div style="width: 14px; height: 14px; background: #00ffff; border-radius: 50%; margin-right: 10px;"></div>
+                <span>Security Hubs</span>
+            </div>
+            <hr style="border: 1px solid #00ff9d; margin: 12px 0; opacity: 0.5;">
+            <div style="font-size: 11px; color: #00d4ff; text-align: center; margin-top: 5px;">
+                🔗 Real-time Network Map
+            </div>
+        `;
+
+        container.appendChild(legend);
     }
 
     addNodeLabel(position, text, color) {
@@ -829,57 +1112,123 @@ class CyberGuardApp {
     }
 
     initCharts() {
-        this.initRealTimeChart();
-        this.initThreatDistributionChart();
-        this.initSecurityTrendsChart();
-        this.initNetworkActivityChart();
+        // Destroy existing charts to prevent canvas reuse errors
+        this.destroyExistingCharts();
+        
+        setTimeout(() => {
+            this.initRealTimeChart();
+            this.initThreatDistributionChart();
+            this.initSecurityTrendsChart();
+            this.initNetworkActivityChart();
+        }, 100);
+    }
+
+    destroyExistingCharts() {
+        // Destroy all existing Chart.js instances
+        Object.values(this.charts).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+        this.charts = {};
     }
 
     initRealTimeChart() {
-        const ctx = document.getElementById('realTimeChart');
-        if (!ctx) return;
+        const canvas = document.getElementById('realTimeChart');
+        if (!canvas) return;
 
-        this.charts.realTime = new Chart(ctx, {
+        // Make sure any previous chart instance is destroyed
+        if (Chart.getChart(canvas)) {
+            Chart.getChart(canvas).destroy();
+        }
+
+        // Basic config with simpler options
+        this.charts.realTime = new Chart(canvas, {
             type: 'line',
             data: {
-                labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+                labels: ['20s ago', '11s ago', '2s ago'],
                 datasets: [
                     {
-                        label: 'Threats Detected',
-                        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 50) + 10),
-                        borderColor: '#ff3333',
-                        backgroundColor: 'rgba(255, 51, 51, 0.1)',
-                        fill: true,
-                        tension: 0.4
+                        label: 'Network Traffic (MB/s)',
+                        data: [60, 150, 35],
+                        borderColor: '#00ff9d',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        pointBackgroundColor: '#00ff9d',
+                        pointRadius: 8,
+                        borderWidth: 3
                     },
                     {
-                        label: 'Threats Blocked',
-                        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 45) + 8),
-                        borderColor: '#00ffff',
-                        backgroundColor: 'rgba(0, 255, 255, 0.1)',
-                        fill: true,
-                        tension: 0.4
+                        label: 'Threat Activity (events/s)',
+                        data: [15, 50, 10],
+                        borderColor: '#ff073a',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        pointBackgroundColor: '#ff073a',
+                        pointRadius: 8,
+                        borderWidth: 3
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'LIVE NETWORK ACTIVITY',
+                        color: '#999999',
+                        font: {
+                            size: 20,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            bottom: 30
+                        }
+                    },
                     legend: {
+                        display: true,
+                        position: 'top',
                         labels: {
-                            color: '#00ffff'
+                            color: '#FFFFFF',
+                            font: {
+                                size: 16
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
                         }
                     }
                 },
                 scales: {
-                    x: {
-                        ticks: { color: '#00ffff' },
-                        grid: { color: 'rgba(0, 255, 255, 0.1)' }
-                    },
                     y: {
-                        ticks: { color: '#00ffff' },
-                        grid: { color: 'rgba(0, 255, 255, 0.1)' }
+                        min: 0,
+                        max: 200,
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF',
+                            stepSize: 50,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF',
+                            font: {
+                                size: 14
+                            }
+                        }
                     }
                 }
             }
@@ -889,6 +1238,12 @@ class CyberGuardApp {
     initThreatDistributionChart() {
         const ctx = document.getElementById('threatDistributionChart');
         if (!ctx) return;
+
+        // Destroy existing chart if it exists
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+            existingChart.destroy();
+        }
 
         this.charts.threatDistribution = new Chart(ctx, {
             type: 'doughnut',
@@ -924,6 +1279,12 @@ class CyberGuardApp {
     initSecurityTrendsChart() {
         const ctx = document.getElementById('securityTrendsChart');
         if (!ctx) return;
+
+        // Destroy existing chart if it exists
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+            existingChart.destroy();
+        }
 
         this.charts.securityTrends = new Chart(ctx, {
             type: 'bar',
@@ -974,6 +1335,12 @@ class CyberGuardApp {
         const ctx = document.getElementById('networkActivityChart');
         if (!ctx) return;
 
+        // Destroy existing chart if it exists
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
         const data = Array.from({ length: 60 }, () => Math.floor(Math.random() * 100));
         
         this.charts.networkActivity = new Chart(ctx, {
@@ -994,11 +1361,25 @@ class CyberGuardApp {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                layout: {
+                    padding: {
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
+                    }
+                },
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#00ffff'
-                        }
+                            color: '#00ffff',
+                            font: { 
+                                size: 12,
+                                weight: '600'
+                            },
+                            padding: 15
+                        },
+                        position: 'top'
                     }
                 },
                 scales: {
@@ -1006,8 +1387,21 @@ class CyberGuardApp {
                         display: false
                     },
                     y: {
-                        ticks: { color: '#00ffff' },
-                        grid: { color: 'rgba(0, 255, 255, 0.1)' }
+                        ticks: { 
+                            color: '#00ffff',
+                            font: { 
+                                size: 11,
+                                weight: '500'
+                            },
+                            padding: 8
+                        },
+                        grid: { 
+                            color: 'rgba(0, 255, 255, 0.15)',
+                            lineWidth: 1
+                        },
+                        border: {
+                            color: 'rgba(0, 255, 255, 0.3)'
+                        }
                     }
                 }
             }
@@ -1051,6 +1445,9 @@ class CyberGuardApp {
 
     async loadAnalytics() {
         try {
+            // Initialize Analytics charts
+            this.initAnalyticsCharts();
+            
             const response = await fetch(`${this.apiBaseUrl}/analytics`);
             if (response.ok) {
                 const analytics = await response.json();
@@ -1060,6 +1457,92 @@ class CyberGuardApp {
             }
         } catch (error) {
             console.error('Failed to load analytics:', error);
+            // Initialize charts with default data if API fails
+            this.initAnalyticsCharts();
+        }
+    }
+
+    initAnalyticsCharts() {
+        // Threat Distribution Chart
+        const threatCtx = document.getElementById('threatDistributionChart');
+        if (threatCtx && typeof Chart !== 'undefined') {
+            this.charts.threatDistribution = new Chart(threatCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Phishing', 'Malware', 'Scam Tokens', 'Rug Pulls', 'Honeypots'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#ff073a',
+                            '#ff8c00',
+                            '#00ff9d',
+                            '#00d4ff',
+                            '#9d4edd'
+                        ],
+                        borderColor: '#1a1f2e',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                color: '#00ff9d',
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Security Trends Chart
+        const trendsCtx = document.getElementById('securityTrendsChart');
+        if (trendsCtx && typeof Chart !== 'undefined') {
+            this.charts.securityTrends = new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Threats Detected',
+                        data: [120, 150, 180, 220, 200, 250, 300],
+                        borderColor: '#ff073a',
+                        backgroundColor: 'rgba(255, 7, 58, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Security Score',
+                        data: [85, 87, 84, 90, 88, 92, 95],
+                        borderColor: '#00ff9d',
+                        backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 255, 157, 0.1)' },
+                            ticks: { color: '#00ff9d' }
+                        },
+                        x: { 
+                            grid: { color: 'rgba(0, 255, 157, 0.1)' },
+                            ticks: { color: '#00ff9d' }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            labels: { color: '#00ff9d' }
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -1068,7 +1551,7 @@ class CyberGuardApp {
             threatsBlocked: document.getElementById('threatsBlocked'),
             walletsScanned: document.getElementById('walletsScanned'),
             contractsAnalyzed: document.getElementById('contractsAnalyzed'),
-            phishingSites: document.getElementById('phishingSitesDetected')
+            phishingSites: document.getElementById('phishingSites')
         };
 
         if (elements.threatsBlocked) {
@@ -1111,8 +1594,10 @@ class CyberGuardApp {
         if (!container) return;
 
         container.innerHTML = `
-            <h3>🔍 Recent Threats Detected</h3>
-            <div class="threats-grid">
+            <div class="simple-header" style="text-align: center;">
+                <h3><i class="fas fa-shield-virus" style="margin-right: 10px; color: #00ffff; text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);"></i> Recent Threats Detected</h3>
+            </div>
+            <div class="threats-grid" style="height: calc(100% - 50px); overflow-y: auto; padding: 10px;">
                 ${threats.slice(0, 10).map(threat => `
                     <div class="threat-card">
                         <div class="threat-header">
@@ -1434,15 +1919,30 @@ class CyberGuardApp {
     }
 
     onPageChange(page) {
+        // Destroy charts when switching pages to prevent canvas reuse errors
+        this.destroyExistingCharts();
+        
         switch (page) {
+            case 'dashboard':
+                setTimeout(() => {
+                    this.init3DVisualization();
+                    this.initRealTimeChart();
+                }, 200);
+                break;
+            case 'scanner':
+                setTimeout(() => this.setupScanInterface(), 100);
+                break;
             case 'analytics':
-                setTimeout(() => this.loadAnalytics(), 100);
+                setTimeout(() => this.loadAnalytics(), 200);
                 break;
             case 'threats':
                 this.loadThreats();
                 break;
             case 'monitor':
-                this.startMonitoringUpdates();
+                setTimeout(() => {
+                    this.startMonitoringUpdates();
+                    this.initMonitorCharts();
+                }, 200);
                 break;
         }
     }
@@ -1475,11 +1975,16 @@ class CyberGuardApp {
     }
 
     startMonitoringUpdates() {
+        // Initialize Monitor Charts
+        this.initMonitorCharts();
+        
         // Update monitoring stats more frequently
         setInterval(() => {
             const elements = {
                 responseTime: document.getElementById('responseTime'),
-                activeMonitors: document.getElementById('activeMonitors')
+                activeMonitors: document.getElementById('activeMonitors'),
+                systemHealth: document.getElementById('systemHealth'),
+                blockedAttacks: document.getElementById('blockedAttacks')
             };
             
             if (elements.responseTime) {
@@ -1490,7 +1995,255 @@ class CyberGuardApp {
                 const current = parseInt(elements.activeMonitors.textContent) || 847;
                 elements.activeMonitors.textContent = (current + Math.floor(Math.random() * 10) - 5).toLocaleString();
             }
+            
+            if (elements.systemHealth) {
+                const health = 99.5 + Math.random() * 0.4;
+                elements.systemHealth.textContent = `${health.toFixed(1)}%`;
+            }
+            
+            if (elements.blockedAttacks) {
+                const current = parseInt(elements.blockedAttacks.textContent.replace(',', '')) || 2439;
+                elements.blockedAttacks.textContent = (current + Math.floor(Math.random() * 5)).toLocaleString();
+            }
         }, 2000);
+    }
+
+    initMonitorCharts() {
+        // Network Activity Chart
+        const networkCtx = document.getElementById('networkActivityChart');
+        if (networkCtx && typeof Chart !== 'undefined') {
+            this.charts.networkActivity = new Chart(networkCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => `${20-i}s ago`),
+                    datasets: [{
+                        label: 'Network Traffic (MB/s)',
+                        data: Array.from({length: 20}, () => Math.random() * 100 + 50),
+                        borderColor: '#00ff9d',
+                        backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#00ff9d',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'Threat Activity (events/s)',
+                        data: Array.from({length: 20}, () => Math.random() * 30 + 5),
+                        borderColor: '#ff073a',
+                        backgroundColor: 'rgba(255, 7, 58, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ff073a',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { 
+                                color: 'rgba(0, 255, 157, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: { 
+                                color: '#00ff9d',
+                                font: { size: 11 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Activity Level',
+                                color: '#00ff9d'
+                            }
+                        },
+                        x: { 
+                            grid: { 
+                                color: 'rgba(0, 255, 157, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: { 
+                                color: '#00ff9d',
+                                font: { size: 10 },
+                                maxTicksLimit: 8
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            labels: { 
+                                color: '#00ff9d',
+                                usePointStyle: true,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 46, 0.9)',
+                            titleColor: '#00ff9d',
+                            bodyColor: '#ffffff',
+                            borderColor: '#00ff9d',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+        }
+
+        // System Performance Chart (already updated above)
+        const systemCtx = document.getElementById('systemPerformanceChart');
+        if (systemCtx && typeof Chart !== 'undefined') {
+            // Destroy existing chart if it exists
+            const existingChart = Chart.getChart(systemCtx);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            this.charts.systemPerformance = new Chart(systemCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['CPU Usage', 'Memory Usage', 'Network I/O', 'Storage I/O'],
+                    datasets: [{
+                        data: [65, 45, 30, 25],
+                        backgroundColor: [
+                            '#ff073a',
+                            '#ff8c00', 
+                            '#00ff9d',
+                            '#00d4ff'
+                        ],
+                        borderColor: '#1a1f2e',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            bottom: 40
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            align: 'center',
+                            labels: { 
+                                color: '#00ff9d',
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    size: 12
+                                },
+                                boxWidth: 12,
+                                boxHeight: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    initThreatActivityChart() {
+        const ctx = document.getElementById('threatActivityChart');
+        if (ctx && typeof Chart !== 'undefined') {
+            this.charts.threatActivity = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 12}, (_, i) => `${12-i}h ago`),
+                    datasets: [{
+                        label: 'Threats Detected',
+                        data: [42, 48, 35, 58, 67, 45, 52, 61, 38, 44, 55, 49],
+                        borderColor: '#ff073a',
+                        backgroundColor: 'rgba(255, 7, 58, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ff073a',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        borderWidth: 3
+                    }, {
+                        label: 'Threats Blocked',
+                        data: [38, 44, 32, 51, 59, 41, 47, 56, 34, 40, 49, 44],
+                        borderColor: '#00ff9d',
+                        backgroundColor: 'rgba(0, 255, 157, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#00ff9d',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            max: 70,
+                            grid: { 
+                                color: 'rgba(0, 255, 157, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: { 
+                                color: '#00ff9d',
+                                font: { size: 11 },
+                                stepSize: 10
+                            },
+                            title: {
+                                display: true,
+                                text: 'Threat Count',
+                                color: '#00ff9d',
+                                font: { size: 12 }
+                            }
+                        },
+                        x: { 
+                            grid: { 
+                                color: 'rgba(0, 255, 157, 0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: { 
+                                color: '#00ff9d',
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            labels: { 
+                                color: '#00ff9d',
+                                usePointStyle: true,
+                                font: { size: 12 },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 46, 0.9)',
+                            titleColor: '#00ff9d',
+                            bodyColor: '#ffffff',
+                            borderColor: '#00ff9d',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true
+                        }
+                    }
+                }
+            });
+        }
     }
 
     showNotification(message, type = 'info') {
@@ -1549,8 +2302,30 @@ window.quickScan = function(target, type) {
 };
 
 // Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize CyberGuard when everything is ready
+function initializeCyberGuard() {
+    console.log('🚀 Initializing CyberGuard...');
     window.cyberGuard = new CyberGuardApp();
+}
+
+// Wait for DOM and libraries to load
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if Three.js is available immediately
+    if (typeof THREE !== 'undefined' && THREE.Scene) {
+        console.log('✅ Three.js loaded successfully');
+        initializeCyberGuard();
+    } else {
+        // Wait a bit for Three.js to load, then initialize regardless
+        console.log('⏳ Waiting for Three.js...');
+        setTimeout(() => {
+            if (typeof THREE !== 'undefined' && THREE.Scene) {
+                console.log('✅ Three.js loaded after delay');
+            } else {
+                console.log('⚠️ Three.js not available, proceeding with 2D fallback');
+            }
+            initializeCyberGuard();
+        }, 1000);
+    }
 });
 
 // Add some CSS animations

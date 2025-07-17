@@ -1,0 +1,50 @@
+/* Threat Heatmap Styles */
+#threatHeatmap {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+}
+
+.simple-card .simple-chart-container {
+    background-color: #0d1117;
+}
+
+/* Tooltip enhancements */
+[title] {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Transition effects for heatmap cells */
+#threatHeatmap div div div {
+    transition: all 0.2s ease;
+}
+
+/* Legend styling */
+.heatmap-legend {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+    background-color: rgba(13, 17, 23, 0.8);
+}
+
+.heatmap-legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+}
+
+.heatmap-legend-color {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 2px;
+}
+
+.heatmap-legend-label {
+    color: #00ffff;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+}
