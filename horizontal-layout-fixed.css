@@ -24,6 +24,8 @@
     flex-direction: row !important;
     gap: 1rem !important;
     width: 100% !important;
+    justify-content: center !important;
+    align-items: stretch !important;
     margin-bottom: 1.5rem !important;
     flex-wrap: wrap !important;
 }
@@ -189,25 +191,29 @@ canvas {
     width: calc(100% - 20px) !important;
     height: calc(100% - 60px) !important;
     max-height: 300px !important;
-    margin: 10px !important;
+    margin: 10px auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
 }
 
 /* Heatmap and other visualization containers */
 #threatHeatmap,
 #geoThreatMap {
-    width: calc(100% - 20px) !important;
-    height: calc(100% - 60px) !important;
+    width: 100% !important;
+    height: 400px !important;
     min-height: 300px !important;
-    max-height: 400px !important;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--primary-cyber);
+    margin: 10px auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--primary-cyber) !important;
     padding: 10px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
 
 /* Chart container title spacing */

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard - Monitor</title>
+    <link rel="stylesheet" href="enhanced-styles.css">
+    <link rel="stylesheet" href="theme-overrides.css">
+    <link rel="stylesheet" href="horizontal-layout-fixed.css">
+    <link rel="stylesheet" href="ui-centered-layout.css">
+    <link rel="stylesheet" href="common-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;900&display=swap');
+        
+        /* CSP Font Fix */
+        body, .nav-link, .scan-button, .chart-title {
+            font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+        }
+        
+        /* Fix inline styles */
+        .stat-change { font-size: 0.8rem; opacity: 0.7; }
+        .version-tag { font-size: 0.6em; color: var(--cyber-text-secondary); }
+        .quick-scan-options { margin-bottom: 1rem; }
+        .quick-scan-flex { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .scan-results-hidden { display: none; }
+        .scanner-title-header { position: absolute; top: 1rem; left: 1rem; z-index: 10; }
+        .stat-icon-accent { color: var(--cyber-electric-blue); }
+        .stat-icon-primary { color: var(--cyber-matrix-green); }
+        .stat-icon-warning { color: var(--cyber-warning-orange); }
+        .stat-icon-secondary { color: var(--cyber-electric-blue); }
+        .threat-stat-accent { color: var(--cyber-electric-blue); }
+        .threat-stat-primary { color: var(--cyber-matrix-green); }
+        .threat-stat-warning { color: var(--cyber-warning-orange); }
+        .threat-stat-danger { color: var(--cyber-danger-red); }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
+    <style>
+        /* Enhanced cybersecurity styling */
+        :root {
+            --primary-cyber: #00ffff;
+            --secondary-cyber: #ff0080;
+            --accent-cyber: #39ff14;
+            --danger-cyber: #ff3333;
+            --warning-cyber: #ffaa00;
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(16, 16, 32, 0.95);
+            --gradient-cyber: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* Fix for monitor page layout */
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+        }
+        
+        .monitor-card {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .monitor-card h3 {
+            color: var(--primary-cyber);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .monitor-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .monitor-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        
+        .status-healthy {
+            background-color: rgba(57, 255, 20, 0.2);
+            color: var(--accent-cyber);
+            border: 1px solid var(--accent-cyber);
+        }
+        
+        .status-warning {
+            background-color: rgba(255, 170, 0, 0.2);
+            color: var(--warning-cyber);
+            border: 1px solid var(--warning-cyber);
+        }
+        
+        .status-critical {
+            background-color: rgba(255, 51, 51, 0.2);
+            color: var(--danger-cyber);
+            border: 1px solid var(--danger-cyber);
+        }
+        
+        .network-activity {
+            width: 100%;
+            height: 400px;
+            margin-top: 2rem;
+            border: 1px solid var(--primary-cyber);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .monitor-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix rain background -->
+    <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberGuard</span>
+                <span style="font-size: 0.6em; color: var(--accent-cyber);">v2.0</span>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="scanner.html"><i class="fas fa-search"></i> Scanner</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="threats.html"><i class="fas fa-exclamation-triangle"></i> Threats</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="monitor.html"><i class="fas fa-eye"></i> Monitor</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Monitor Page -->
+        <div id="monitor" class="page active">
+            <div class="dashboard-section">
+                <h1 class="glow-text">👁️ Live System Monitor</h1>
+                
+                <div class="monitor-grid">
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-primary">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h3>System Health</h3>
+                        <div class="monitor-value threat-stat-primary">98%</div>
+                        <div class="monitor-status status-healthy">HEALTHY</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-accent">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Response Time</h3>
+                        <div class="monitor-value threat-stat-accent">42ms</div>
+                        <div class="monitor-status status-healthy">OPTIMAL</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-secondary">
+                            <i class="fas fa-satellite-dish"></i>
+                        </div>
+                        <h3>Active Monitors</h3>
+                        <div class="monitor-value threat-stat-accent">12</div>
+                        <div class="monitor-status status-healthy">ONLINE</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-warning">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Blocked Attacks</h3>
+                        <div class="monitor-value threat-stat-warning">347</div>
+                        <div class="monitor-status status-warning">ACTIVE THREATS</div>
+                    </div>
+                </div>
+                
+                <div class="network-activity">
+                    <h3>Live Network Activity</h3>
+                    <div id="networkActivityChart"></div>
+                </div>
+                
+                <div class="monitor-grid">
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-primary">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <h3>Memory Usage</h3>
+                        <div class="monitor-value threat-stat-primary">2.4<span style="font-size: 1rem;">GB</span></div>
+                        <div class="monitor-status status-healthy">NORMAL</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-warning">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <h3>CPU Load</h3>
+                        <div class="monitor-value threat-stat-warning">78%</div>
+                        <div class="monitor-status status-warning">MODERATE</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-accent">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>Storage</h3>
+                        <div class="monitor-value threat-stat-accent">42%</div>
+                        <div class="monitor-status status-healthy">AVAILABLE</div>
+                    </div>
+                    
+                    <div class="monitor-card">
+                        <div class="monitor-icon stat-icon-primary">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Uptime</h3>
+                        <div class="monitor-value threat-stat-primary">14<span style="font-size: 1rem;">d</span></div>
+                        <div class="monitor-status status-healthy">STABLE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="enhanced-script.js"></script>
+    <script>
+        // Initialize monitor page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const app = new CyberGuardApp();
+            app.initMatrixEffect();
+            
+            // Initialize network activity chart
+            setTimeout(() => {
+                const networkActivityContainer = document.getElementById('networkActivityChart');
+                if (networkActivityContainer) {
+                    // Create sample data for the network activity chart
+                    const timeLabels = [];
+                    const inboundData = [];
+                    const outboundData = [];
+                    
+                    // Generate time labels for the last 60 seconds
+                    const now = new Date();
+                    for (let i = 59; i >= 0; i--) {
+                        const time = new Date(now - i * 1000);
+                        timeLabels.push(time.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+                        
+                        // Generate random data points with some patterns
+                        const baseInbound = 50 + Math.sin(i / 10) * 30;
+                        const baseOutbound = 30 + Math.cos(i / 8) * 20;
+                        
+                        inboundData.push(baseInbound + Math.random() * 15);
+                        outboundData.push(baseOutbound + Math.random() * 10);
+                    }
+                    
+                    const data = [
+                        {
+                            x: timeLabels,
+                            y: inboundData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Inbound Traffic',
+                            line: {
+                                color: 'rgba(0, 255, 255, 0.8)',
+                                width: 2
+                            }
+                        },
+                        {
+                            x: timeLabels,
+                            y: outboundData,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Outbound Traffic',
+                            line: {
+                                color: 'rgba(57, 255, 20, 0.8)',
+                                width: 2
+                            }
+                        }
+                    ];
+                    
+                    const layout = {
+                        title: 'Real-time Network Traffic',
+                        xaxis: {
+                            title: 'Time',
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        yaxis: {
+                            title: 'Data (KB/s)',
+                            showgrid: true,
+                            gridcolor: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)',
+                        font: { color: '#00ffff' },
+                        margin: { t: 50, r: 20, b: 50, l: 50 },
+                        legend: {
+                            x: 0,
+                            y: 1,
+                            bgcolor: 'rgba(0,0,0,0.5)',
+                            bordercolor: 'rgba(0, 255, 255, 0.5)'
+                        }
+                    };
+                    
+                    Plotly.newPlot('networkActivityChart', data, layout, {
+                        responsive: true,
+                        displayModeBar: false,
+                        scrollZoom: false
+                    });
+                    
+                    // Make sure the chart resizes properly when window size changes
+                    window.addEventListener('resize', function() {
+                        Plotly.relayout('networkActivityChart', {
+                            'width': document.getElementById('networkActivityChart').offsetWidth,
+                            'height': document.getElementById('networkActivityChart').offsetHeight
+                        });
+                    });
+                    
+                    // Simulate real-time updates
+                    setInterval(() => {
+                        const time = new Date();
+                        const newTime = time.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        
+                        // Generate new data points
+                        const newInbound = 50 + Math.sin(Date.now() / 10000) * 30 + Math.random() * 15;
+                        const newOutbound = 30 + Math.cos(Date.now() / 8000) * 20 + Math.random() * 10;
+                        
+                        // Update the chart with the new data
+                        Plotly.extendTraces('networkActivityChart', {
+                            x: [[newTime], [newTime]],
+                            y: [[newInbound], [newOutbound]]
+                        }, [0, 1]);
+                        
+                        // Remove the oldest data point to maintain a 60-second window
+                        if (timeLabels.length > 60) {
+                            Plotly.relayout('networkActivityChart', {
+                                xaxis: {
+                                    range: [timeLabels[timeLabels.length - 60], newTime]
+                                }
+                            });
+                        }
+                    }, 1000);
+                }
+                
+                // Update monitor stats periodically
+                setInterval(() => {
+                    // Simulate small changes in monitor values
+                    const systemHealth = document.querySelector('.monitor-card:nth-child(1) .monitor-value');
+                    if (systemHealth) {
+                        const currentHealth = parseFloat(systemHealth.textContent);
+                        const newHealth = Math.max(95, Math.min(99.5, currentHealth + (Math.random() - 0.5) * 0.5)).toFixed(1);
+                        systemHealth.textContent = newHealth + '%';
+                    }
+                    
+                    const responseTime = document.querySelector('.monitor-card:nth-child(2) .monitor-value');
+                    if (responseTime) {
+                        const currentTime = parseInt(responseTime.textContent);
+                        const newTime = Math.max(35, Math.min(60, currentTime + Math.floor((Math.random() - 0.5) * 5)));
+                        responseTime.textContent = newTime + 'ms';
+                    }
+                    
+                    const blockedAttacks = document.querySelector('.monitor-card:nth-child(4) .monitor-value');
+                    if (blockedAttacks) {
+                        const currentAttacks = parseInt(blockedAttacks.textContent);
+                        const newAttacks = currentAttacks + (Math.random() < 0.3 ? 1 : 0);
+                        blockedAttacks.textContent = newAttacks;
+                    }
+                    
+                    const cpuLoad = document.querySelector('.monitor-card:nth-child(6) .monitor-value');
+                    if (cpuLoad) {
+                        const currentLoad = parseInt(cpuLoad.textContent);
+                        const newLoad = Math.max(50, Math.min(95, currentLoad + Math.floor((Math.random() - 0.5) * 8)));
+                        cpuLoad.textContent = newLoad + '%';
+                        
+                        // Update status based on CPU load
+                        const cpuStatus = document.querySelector('.monitor-card:nth-child(6) .monitor-status');
+                        if (cpuStatus) {
+                            if (newLoad > 85) {
+                                cpuStatus.className = 'monitor-status status-critical';
+                                cpuStatus.textContent = 'HIGH';
+                            } else if (newLoad > 70) {
+                                cpuStatus.className = 'monitor-status status-warning';
+                                cpuStatus.textContent = 'MODERATE';
+                            } else {
+                                cpuStatus.className = 'monitor-status status-healthy';
+                                cpuStatus.textContent = 'NORMAL';
+                            }
+                        }
+                    }
+                }, 3000);
+            }, 500);
+        });
+    </script>
+    <script>
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    window.dispatchEvent(new Event('resize'));
+    if (window.Plotly && document.getElementById('networkActivityChart')) {
+      Plotly.Plots.resize('networkActivityChart');
+    }
+  }, 200);
+});
+</script>
+    <!-- Include common navigation script -->
+    <script src="common-nav.js"></script>
+</body>
+</html>

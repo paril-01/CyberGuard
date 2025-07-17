@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="enhanced-styles.css">
     <link rel="stylesheet" href="theme-overrides.css">
     <link rel="stylesheet" href="horizontal-layout-fixed.css">
+    <link rel="stylesheet" href="ui-centered-layout.css">
+    <link rel="stylesheet" href="common-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;900&display=swap');
@@ -71,7 +73,7 @@
             overflow-x: hidden;
         }
 
-        /* Matrix rain effect */
+        /* Matrix rain effect - Full screen background for all pages */
         .matrix-bg {
             position: fixed;
             top: 0;
@@ -79,7 +81,8 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.1;
+            opacity: 0.15;
+            pointer-events: none;
         }
 
         /* Header */
@@ -459,11 +462,12 @@
     <div class="container">
         <!-- Dashboard Page -->
         <div id="dashboard" class="page active">
+            <div class="dashboard-section">
             <h1 class="glow-text">🛡️ CyberGuard Security Dashboard</h1>
             
             <!-- Real-time Stats -->
-            <div class="dashboard-grid">
-                <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
                         <i class="fas fa-shield-check" style="color: var(--accent-cyber);"></i>
@@ -473,7 +477,7 @@
                     <div style="font-size: 0.8rem; opacity: 0.7;">+23 in last hour</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
                         <i class="fas fa-wallet" style="color: var(--primary-cyber);"></i>
@@ -483,7 +487,7 @@
                     <div style="font-size: 0.8rem; opacity: 0.7;">+156 in last hour</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
                         <i class="fas fa-code" style="color: var(--warning-cyber);"></i>
@@ -493,7 +497,7 @@
                     <div style="font-size: 0.8rem; opacity: 0.7;">+42 in last hour</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="cyber-grid"></div>
                     <div class="stats-header">
                         <i class="fas fa-globe" style="color: var(--secondary-cyber);"></i>
@@ -520,10 +524,12 @@
                     <canvas id="realTimeChart"></canvas>
                 </div>
             </div>
+            </div>
         </div>
 
         <!-- Scanner Page -->
         <div id="scanner" class="page">
+            <div class="dashboard-section">
             <h1 class="glow-text">🔍 Advanced Security Scanner</h1>
             
             <div class="scan-interface">
@@ -566,13 +572,15 @@
             <div id="scanResults" class="results-container" style="display: none;">
                 <!-- Results will be populated by JavaScript -->
             </div>
+            </div>
         </div>
 
         <!-- Threats Page -->
         <div id="threats" class="page">
+            <div class="dashboard-section">
             <h1 class="glow-text">⚠️ Active Threats Intelligence</h1>
             
-            <div class="content-row">
+            <div class="dashboard-content-row">
                 <div class="chart-container">
                     <h3>🔥 Threat Heatmap</h3>
                     <div id="threatHeatmap"></div>
@@ -582,10 +590,12 @@
                     <!-- Threats list will be populated by JavaScript -->
                 </div>
             </div>
+            </div>
         </div>
 
         <!-- Analytics Page -->
         <div id="analytics" class="page">
+            <div class="dashboard-section">
             <h1 class="glow-text">📈 Advanced Analytics</h1>
             
             <div class="analytics-grid">
@@ -601,17 +611,18 @@
 
                 <div class="chart-container">
                     <h3>🌍 Geographic Threat Analysis</h3>
-                    <div id="geoThreatMap"></div>
+                    <div id="geoThreatMap" style="width: 100%; height: 400px; display: flex; flex-direction: column; align-items: center;"></div>
                 </div>
             </div>
         </div>
 
         <!-- Monitor Page -->
         <div id="monitor" class="page">
+            <div class="dashboard-section">
             <h1 class="glow-text">👁️ Real-time Monitoring</h1>
             
-            <div class="dashboard-grid">
-                <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat-card">
                     <div class="stats-header">
                         <i class="fas fa-heartbeat" style="color: var(--accent-cyber);"></i>
                         <span class="stats-label">System Health</span>
@@ -619,7 +630,7 @@
                     <div class="stats-value" id="systemHealth">99.7%</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="stats-header">
                         <i class="fas fa-clock" style="color: var(--primary-cyber);"></i>
                         <span class="stats-label">Response Time</span>
@@ -627,7 +638,7 @@
                     <div class="stats-value" id="responseTime">23ms</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="stats-header">
                         <i class="fas fa-server" style="color: var(--warning-cyber);"></i>
                         <span class="stats-label">Active Monitors</span>
@@ -635,7 +646,7 @@
                     <div class="stats-value" id="activeMonitors">847</div>
                 </div>
 
-                <div class="stats-card">
+                <div class="stat-card">
                     <div class="stats-header">
                         <i class="fas fa-shield-virus" style="color: var(--danger-cyber);"></i>
                         <span class="stats-label">Blocked Attacks</span>
@@ -648,9 +659,11 @@
                 <h3>⚡ Live Network Activity</h3>
                 <canvas id="networkActivityChart"></canvas>
             </div>
+            </div>
         </div>
     </div>
 
     <script src="enhanced-script.js"></script>
+    <script src="common-nav.js"></script>
 </body>
 </html>

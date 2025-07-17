@@ -3,12 +3,20 @@
 /* HORIZONTAL DASHBOARD LAYOUT */
 .dashboard-section {
     display: flex !important;
-    flex-direction: column !important;
+    flex-direction: row !important;
     gap: 2rem !important;
+    width: 100% !important;
     max-width: 1800px !important;
     margin: 0 auto !important;
     padding: 0 2rem !important;
+}
+.dashboard-content-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
     width: 100% !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
 }
 
 /* HORIZONTAL STATS GRID */
@@ -49,12 +57,30 @@
 }
 
 .scanner-container {
-    flex: 1 1 60% !important;
-    background: linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 29, 61, 0.95) 100%) !important;
-    border: 3px solid var(--cyber-border-primary) !important;
+    border: 3px solid var(--cyber-electric-blue) !important;
+    box-shadow: 0 0 24px 4px var(--cyber-electric-blue), 0 0 40px 0px var(--cyber-matrix-green) !important;
+    background: linear-gradient(135deg, rgba(10, 20, 40, 0.95) 0%, rgba(0, 29, 61, 0.98) 100%) !important;
+    border-radius: 24px !important;
+    padding: 3rem 2rem !important;
+    margin-bottom: 3rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(12px) !important;
+    max-width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Scanner frame styling */
+.scanner-frame {
+    border: 3px solid var(--primary-cyber) !important;
     border-radius: 20px !important;
     padding: 2.5rem !important;
-    margin: 0 !important;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3) !important;
+    background: rgba(0, 10, 30, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    margin: 1rem auto !important;
+    max-width: 1200px !important;
     position: relative !important;
     overflow: hidden !important;
     backdrop-filter: blur(15px) !important;

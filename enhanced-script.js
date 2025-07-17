@@ -1165,10 +1165,24 @@ class CyberGuardApp {
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: '#00ffff' },
             xaxis: { color: '#00ffff' },
-            yaxis: { color: '#00ffff' }
+            yaxis: { color: '#00ffff' },
+            autosize: true,
+            margin: { t: 50, r: 20, b: 50, l: 50 }
         };
 
-        Plotly.newPlot(container, data, layout, { responsive: true });
+        Plotly.newPlot(container, data, layout, { 
+            responsive: true,
+            displayModeBar: false,
+            scrollZoom: false
+        });
+        
+        // Make sure the heatmap resizes properly when window size changes
+        window.addEventListener('resize', function() {
+            Plotly.relayout('threatHeatmap', {
+                'width': document.getElementById('threatHeatmap').offsetWidth,
+                'height': document.getElementById('threatHeatmap').offsetHeight
+            });
+        });
     }
 
     initGeoThreatMap(analytics) {
@@ -1189,17 +1203,35 @@ class CyberGuardApp {
 
         const layout = {
             title: 'Global Threat Distribution',
+            autosize: true,
             geo: {
                 bgcolor: 'rgba(0,0,0,0)',
                 showframe: false,
                 showcoastlines: true,
-                projection: { type: 'natural earth' }
+                projection: { type: 'natural earth' },
+                center: { lon: 0, lat: 30 },
+                lonaxis: { range: [-180, 180] },
+                lataxis: { range: [-90, 90] }
             },
             paper_bgcolor: 'rgba(0,0,0,0)',
-            font: { color: '#00ffff' }
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#00ffff' },
+            margin: { t: 50, r: 20, b: 50, l: 50 }
         };
-
-        Plotly.newPlot(container, data, layout, { responsive: true });
+        
+        Plotly.newPlot(container, data, layout, {
+            responsive: true,
+            displayModeBar: false,
+            scrollZoom: false
+        });
+        
+        // Make sure the map resizes properly when window size changes
+        window.addEventListener('resize', function() {
+            Plotly.relayout('geoThreatMap', {
+                'width': document.getElementById('geoThreatMap').offsetWidth,
+                'height': document.getElementById('geoThreatMap').offsetHeight
+            });
+        });
     }
 
     updateAnalyticsCharts(analytics) {
