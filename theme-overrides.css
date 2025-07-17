@@ -1,0 +1,320 @@
+/* Enhanced CyberGuard Theme Overrides with HORIZONTAL LAYOUT */
+
+/* HORIZONTAL DASHBOARD LAYOUT */
+.dashboard-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2rem !important;
+    max-width: 1800px !important;
+    margin: 0 auto !important;
+    padding: 0 2rem !important;
+    width: 100% !important;
+}
+
+/* HORIZONTAL STATS GRID */
+.stats-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+    flex-wrap: wrap !important;
+}
+
+.stat-card {
+    flex: 1 1 calc(25% - 1rem) !important;
+    min-width: 220px !important;
+    background: linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 29, 61, 0.95) 100%) !important;
+    border: 3px solid var(--cyber-border-primary) !important;
+    border-radius: 16px !important;
+    padding: 1.5rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(15px) !important;
+    box-shadow: var(--cyber-glow-green), 0 5px 20px rgba(0, 0, 0, 0.3) !important;
+    min-height: 140px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
+/* HORIZONTAL SCANNER AND THREATS SECTION */
+.scanner-threats-row {
+    display: flex !important;
+    gap: 2rem !important;
+    width: 100% !important;
+    align-items: flex-start !important;
+}
+
+.scanner-container {
+    flex: 1 1 60% !important;
+    background: linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 29, 61, 0.95) 100%) !important;
+    border: 3px solid var(--cyber-border-primary) !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    margin: 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(15px) !important;
+    box-shadow: var(--cyber-glow-green), 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dashboard-threats {
+    flex: 1 1 40% !important;
+    width: 100% !important;
+}
+
+/* HORIZONTAL ANALYTICS GRID */
+.analytics-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    margin: 2rem 0 !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+}
+
+.chart-container,
+.visualization-container,
+.map-container,
+.heatmap-container {
+    flex: 1 1 calc(50% - 1rem) !important;
+    min-width: 400px !important;
+    background: linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 29, 61, 0.95) 100%) !important;
+    border: 3px solid var(--cyber-border-primary) !important;
+    border-radius: 20px !important;
+    padding: 2rem !important;
+    backdrop-filter: blur(15px) !important;
+    box-shadow: var(--cyber-glow-green), 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden !important;
+    min-height: 350px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    margin: 0 !important;
+}
+
+/* HORIZONTAL THREAT CARDS */
+.threat-cards-horizontal {
+    display: flex !important;
+    gap: 1rem !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+}
+
+.threat-card {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    min-width: 180px !important;
+    background: linear-gradient(135deg, rgba(0, 8, 20, 0.9) 0%, rgba(0, 29, 61, 0.9) 100%) !important;
+    border: 2px solid var(--cyber-border-primary) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    box-shadow: var(--cyber-glow-green) !important;
+}
+
+/* HORIZONTAL NAVIGATION BUTTONS */
+.scan-types {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+}
+
+.scan-type-btn {
+    flex: 1 !important;
+    padding: 1rem 1.5rem !important;
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%) !important;
+    border: 2px solid var(--cyber-border-primary) !important;
+    border-radius: 12px !important;
+    color: var(--cyber-text-primary) !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+}
+
+/* HORIZONTAL QUICK SCAN OPTIONS */
+#quickScanOptions div {
+    display: flex !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+    margin-top: 0.5rem !important;
+    justify-content: center !important;
+}
+
+.quick-scan-btn {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    padding: 0.5rem 1rem !important;
+    background: rgba(0, 255, 65, 0.1) !important;
+    border: 1px solid var(--cyber-border-primary) !important;
+    border-radius: 8px !important;
+    color: var(--cyber-text-primary) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-align: center !important;
+}
+
+/* RESPONSIVE HORIZONTAL LAYOUT */
+@media (max-width: 1400px) {
+    .scanner-threats-row {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    .scanner-container {
+        flex: 1 1 100% !important;
+    }
+    
+    .dashboard-threats {
+        flex: 1 1 100% !important;
+    }
+    
+    .analytics-grid {
+        flex-direction: column !important;
+    }
+    
+    .chart-container,
+    .visualization-container {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .stats-grid {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    
+    .stat-card {
+        flex: 1 1 calc(50% - 0.75rem) !important;
+        min-width: 200px !important;
+    }
+    
+    .scan-types {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .scan-type-btn {
+        flex: 1 1 100% !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1rem !important;
+    }
+    
+    .stats-grid {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .stat-card {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+    
+    .scanner-container {
+        padding: 1.5rem !important;
+    }
+    
+    .analytics-grid {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    .threat-cards-horizontal {
+        flex-direction: column !important;
+    }
+    
+    .threat-card {
+        flex: 1 1 100% !important;
+    }
+}
+
+/* CONTENT LAYOUT FIXES */
+.content {
+    padding: 2rem !important;
+    max-width: 1800px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+}
+
+/* CHART CANVAS SIZING */
+.chart-canvas,
+#threejs-container {
+    width: 100% !important;
+    height: 300px !important;
+    border-radius: 12px !important;
+    flex-grow: 1 !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* PAGE SECTION LAYOUT */
+.page-section {
+    width: 100% !important;
+    max-width: none !important;
+    display: block !important;
+}
+
+.page-section.active {
+    display: block !important;
+}
+
+/* ENSURE HORIZONTAL FLOW */
+.dashboard-analytics {
+    width: 100% !important;
+}
+
+/* FIX THREE.JS CONTAINER */
+#threejs-container {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--cyber-border-primary) !important;
+    border-radius: 12px !important;
+}
+
+/* HORIZONTAL ALERT ITEMS */
+.alert-item {
+    background: linear-gradient(135deg, rgba(0, 8, 20, 0.9) 0%, rgba(0, 29, 61, 0.9) 100%) !important;
+    border: 2px solid var(--cyber-border-primary) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--cyber-glow-green) !important;
+    margin: 0.5rem 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+}
+
+/* BUTTON IMPROVEMENTS */
+.scan-button,
+.nav-link {
+    font-family: 'JetBrains Mono', monospace !important;
+    letter-spacing: 1px !important;
+    font-weight: 600 !important;
+}
+
+/* TEXT VISIBILITY */
+.cyber-text,
+.stat-value,
+.scanner-title {
+    color: var(--cyber-text-primary) !important;
+    text-shadow: var(--cyber-glow-green) !important;
+}

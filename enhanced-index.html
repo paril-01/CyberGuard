@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard - Advanced Crypto Security Platform</title>
+    <link rel="stylesheet" href="enhanced-styles.css">
+    <link rel="stylesheet" href="theme-overrides.css">
+    <link rel="stylesheet" href="horizontal-layout-fixed.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;900&display=swap');
+        
+        /* CSP Font Fix */
+        body, .nav-link, .scan-button, .chart-title {
+            font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+        }
+        
+        /* Fix inline styles */
+        .stat-change { font-size: 0.8rem; opacity: 0.7; }
+        .version-tag { font-size: 0.6em; color: var(--cyber-text-secondary); }
+        .quick-scan-options { margin-bottom: 1rem; }
+        .quick-scan-flex { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .scan-results-hidden { display: none; }
+        .scanner-title-header { position: absolute; top: 1rem; left: 1rem; z-index: 10; }
+        .stat-icon-accent { color: var(--cyber-electric-blue); }
+        .stat-icon-primary { color: var(--cyber-matrix-green); }
+        .stat-icon-warning { color: var(--cyber-warning-orange); }
+        .stat-icon-secondary { color: var(--cyber-electric-blue); }
+        .threat-stat-accent { color: var(--cyber-electric-blue); }
+        .threat-stat-primary { color: var(--cyber-matrix-green); }
+        .threat-stat-warning { color: var(--cyber-warning-orange); }
+        .threat-stat-danger { color: var(--cyber-danger-red); }
+    </style>
+    <!-- 3D and Visualization Libraries -->
+    <!-- Three.js ES Modules for better compatibility -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
+    <script src="https://unpkg.com/d3@7"></script>
+    <style>
+        /* Enhanced cybersecurity styling */
+        :root {
+            --primary-cyber: #00ffff;
+            --secondary-cyber: #ff0080;
+            --accent-cyber: #39ff14;
+            --danger-cyber: #ff3333;
+            --warning-cyber: #ffaa00;
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(16, 16, 32, 0.95);
+            --gradient-cyber: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--gradient-cyber);
+            color: var(--primary-cyber);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Matrix rain effect */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary-cyber);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--primary-cyber);
+        }
+
+        .logo i {
+            color: var(--accent-cyber);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            border-color: var(--primary-cyber);
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Page sections */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-cyber), var(--accent-cyber), var(--secondary-cyber));
+            animation: slideGlow 3s infinite;
+        }
+
+        @keyframes slideGlow {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-cyber);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Scan interface */
+        .scan-interface {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .scan-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .scan-tab {
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--primary-cyber);
+            color: var(--primary-cyber);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .scan-tab.active {
+            background: var(--primary-cyber);
+            color: var(--dark-bg);
+        }
+
+        .scan-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .scan-input {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 8px;
+            color: var(--primary-cyber);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .scan-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .scan-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--primary-cyber), var(--accent-cyber));
+            border: none;
+            border-radius: 8px;
+            color: var(--dark-bg);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.3);
+        }
+
+        .scan-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results display */
+        .results-container {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .risk-score {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .risk-low { color: var(--accent-cyber); }
+        .risk-medium { color: var(--warning-cyber); }
+        .risk-high { color: var(--danger-cyber); }
+
+        .threat-list {
+            list-style: none;
+        }
+
+        .threat-item {
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 4px solid var(--danger-cyber);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* 3D Visualization container */
+        .visualization-container {
+            height: 400px;
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 12px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-cyber);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            height: 400px;
+        }
+
+        /* Loading animations */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--primary-cyber);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scan-form {
+                flex-direction: column;
+            }
+        }
+
+        /* Additional cybersecurity effects */
+        .cyber-grid {
+            background-image: 
+                linear-gradient(var(--primary-cyber) 1px, transparent 1px),
+                linear-gradient(90deg, var(--primary-cyber) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .ai-analysis {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--accent-cyber);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .ai-analysis h4 {
+            color: var(--accent-cyber);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix rain background -->
+    <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberGuard</span>
+                <span style="font-size: 0.6em; color: var(--accent-cyber);">v2.0</span>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </li>
+                    <li class="nav-item" data-page="scanner">
+                        <i class="fas fa-search"></i> Scanner
+                    </li>
+                    <li class="nav-item" data-page="threats">
+                        <i class="fas fa-exclamation-triangle"></i> Threats
+                    </li>
+                    <li class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </li>
+                    <li class="nav-item" data-page="monitor">
+                        <i class="fas fa-eye"></i> Monitor
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <h1 class="glow-text">🛡️ CyberGuard Security Dashboard</h1>
+            
+            <!-- Real-time Stats -->
+            <div class="dashboard-grid">
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
+                    <div class="stats-header">
+                        <i class="fas fa-shield-check" style="color: var(--accent-cyber);"></i>
+                        <span class="stats-label">Threats Blocked</span>
+                    </div>
+                    <div class="stats-value" id="threatsBlocked">--</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">+23 in last hour</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
+                    <div class="stats-header">
+                        <i class="fas fa-wallet" style="color: var(--primary-cyber);"></i>
+                        <span class="stats-label">Wallets Scanned</span>
+                    </div>
+                    <div class="stats-value" id="walletsScanned">--</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">+156 in last hour</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
+                    <div class="stats-header">
+                        <i class="fas fa-code" style="color: var(--warning-cyber);"></i>
+                        <span class="stats-label">Contracts Analyzed</span>
+                    </div>
+                    <div class="stats-value" id="contractsAnalyzed">--</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">+42 in last hour</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="cyber-grid"></div>
+                    <div class="stats-header">
+                        <i class="fas fa-globe" style="color: var(--secondary-cyber);"></i>
+                        <span class="stats-label">Phishing Sites</span>
+                    </div>
+                    <div class="stats-value" id="phishingSites">--</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">+12 detected today</div>
+                </div>
+            </div>
+
+            <!-- Visualization and Charts Row - Side by Side -->
+            <div class="dashboard-content-row">
+                <!-- 3D Network Visualization -->
+                <div class="visualization-container">
+                    <h3 style="position: absolute; top: 1rem; left: 1rem; z-index: 10; color: var(--primary-cyber);">
+                        🌐 3D Threat Network Map
+                    </h3>
+                    <div id="threeDVisualization"></div>
+                </div>
+
+                <!-- Real-time Charts -->
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 1rem; color: var(--primary-cyber);">📊 Real-time Threat Activity</h3>
+                    <canvas id="realTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Page -->
+        <div id="scanner" class="page">
+            <h1 class="glow-text">🔍 Advanced Security Scanner</h1>
+            
+            <div class="scan-interface">
+                <div class="scan-tabs">
+                    <button class="scan-tab active" data-scan-type="wallet">
+                        <i class="fas fa-wallet"></i> Wallet Analysis
+                    </button>
+                    <button class="scan-tab" data-scan-type="contract">
+                        <i class="fas fa-file-contract"></i> Smart Contract
+                    </button>
+                    <button class="scan-tab" data-scan-type="domain">
+                        <i class="fas fa-globe"></i> Domain Security
+                    </button>
+                </div>
+
+                <div class="scan-form">
+                    <input type="text" id="scanInput" class="scan-input" 
+                           placeholder="Enter wallet address, contract address, or domain...">
+                    <button id="scanBtn" class="scan-btn">
+                        <i class="fas fa-search"></i> Analyze
+                    </button>
+                </div>
+
+                <div id="quickScanOptions" style="margin-bottom: 1rem;">
+                    <h4>Quick Test Scans:</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <button class="scan-tab" data-quick-scan="wallet" data-value="0x742d35Cc6481C2C2f4B03F6A4A1D77ff58BB3E0E">
+                            Test Wallet 1
+                        </button>
+                        <button class="scan-tab" data-quick-scan="contract" data-value="0x8765432109876543210987654321098765432109">
+                            Test Contract
+                        </button>
+                        <button class="scan-tab" data-quick-scan="domain" data-value="fake-metamask-security.com">
+                            Test Domain
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scanResults" class="results-container" style="display: none;">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Threats Page -->
+        <div id="threats" class="page">
+            <h1 class="glow-text">⚠️ Active Threats Intelligence</h1>
+            
+            <div class="content-row">
+                <div class="chart-container">
+                    <h3>🔥 Threat Heatmap</h3>
+                    <div id="threatHeatmap"></div>
+                </div>
+
+                <div id="threatsList" class="results-container">
+                    <!-- Threats list will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics" class="page">
+            <h1 class="glow-text">📈 Advanced Analytics</h1>
+            
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <h3>📊 Threat Distribution</h3>
+                    <canvas id="threatDistributionChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>📈 Security Trends (7 Days)</h3>
+                    <canvas id="securityTrendsChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>🌍 Geographic Threat Analysis</h3>
+                    <div id="geoThreatMap"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitor Page -->
+        <div id="monitor" class="page">
+            <h1 class="glow-text">👁️ Real-time Monitoring</h1>
+            
+            <div class="dashboard-grid">
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <i class="fas fa-heartbeat" style="color: var(--accent-cyber);"></i>
+                        <span class="stats-label">System Health</span>
+                    </div>
+                    <div class="stats-value" id="systemHealth">99.7%</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <i class="fas fa-clock" style="color: var(--primary-cyber);"></i>
+                        <span class="stats-label">Response Time</span>
+                    </div>
+                    <div class="stats-value" id="responseTime">23ms</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <i class="fas fa-server" style="color: var(--warning-cyber);"></i>
+                        <span class="stats-label">Active Monitors</span>
+                    </div>
+                    <div class="stats-value" id="activeMonitors">847</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-header">
+                        <i class="fas fa-shield-virus" style="color: var(--danger-cyber);"></i>
+                        <span class="stats-label">Blocked Attacks</span>
+                    </div>
+                    <div class="stats-value" id="blockedAttacks">2,439</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>⚡ Live Network Activity</h3>
+                <canvas id="networkActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="enhanced-script.js"></script>
+</body>
+</html>
