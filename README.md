@@ -405,26 +405,7 @@ We welcome contributions! Please follow these guidelines:
 - **Be suspicious of "too good to be true" offers**
 - **Report suspected scams** to help the community
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **TensorFlow.js** team for the ML framework
-- **Svelte** team for the amazing framework
-- **Ethers.js** for Web3 functionality
-- **Community** contributors and threat researchers
-- **Web3 Security** community for threat intelligence
-
-## 📞 Support
-
-- **Documentation**: [docs.cryptophishnet.com](https://docs.cryptophishnet.com)
-- **Discord**: [Join our community](https://discord.gg/cryptophishnet)
-- **Email**: security@cryptophishnet.com
-- **Issues**: [GitHub Issues](https://github.com/your-username/cryptophishnet/issues)
-
----
 
 <div align="center">
   <strong>🛡️ Stay Safe in Web3 🛡️</strong>
