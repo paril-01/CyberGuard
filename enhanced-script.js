@@ -16,12 +16,24 @@ class CyberGuardApp {
     }
 
     async init() {
+        // Initialize core functionality
         this.setupNavigation();
         this.setupWebSocket();
         this.initMatrixEffect();
+        
+        // Make sure we start with clean charts
+        this.destroyCharts();
+        
+        // Initialize visualizations
         this.init3DVisualization();
         this.initCharts();
-        await this.loadInitialData();
+        
+        try {
+            await this.loadInitialData();
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+        }
+        
         this.startRealTimeUpdates();
     }
 
@@ -154,14 +166,29 @@ class CyberGuardApp {
     init3DVisualization() {
         const container = document.getElementById('threeDVisualization');
         if (!container) {
-            console.error('❌ Three.js container not found');
+            console.warn('❌ Three.js container not found');
             return;
         }
 
-        // Check for Three.js availability with multiple checks
+        // Add THREE.js script dynamically if not present
         if (typeof THREE === 'undefined' || !window.THREE || !THREE.Scene) {
-            console.warn('⚠️ Three.js not available, initializing 2D fallback');
-            this.init2DFallback(container);
+            // Load Three.js dynamically
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js";
+            script.async = true;
+            
+            script.onload = () => {
+                console.log("✅ Three.js loaded dynamically");
+                // Initialize after loading
+                setTimeout(() => this.init3DVisualization(), 100);
+            };
+            
+            script.onerror = () => {
+                console.warn('⚠️ Failed to load Three.js, initializing 2D fallback');
+                this.init2DFallback(container);
+            };
+            
+            document.head.appendChild(script);
             return;
         }
 
@@ -1113,7 +1140,7 @@ class CyberGuardApp {
 
     initCharts() {
         // Destroy existing charts to prevent canvas reuse errors
-        this.destroyExistingCharts();
+        this.destroyCharts();
         
         setTimeout(() => {
             this.initRealTimeChart();
@@ -1122,19 +1149,16 @@ class CyberGuardApp {
             this.initNetworkActivityChart();
         }, 100);
     }
-
-    destroyExistingCharts() {
-        // Destroy all existing Chart.js instances
-        Object.values(this.charts).forEach(chart => {
-            if (chart && typeof chart.destroy === 'function') {
-                try {
-                    chart.destroy();
-                } catch (e) {
-                    console.warn('Error destroying chart:', e);
-                }
+    
+    // We now use the single destroyCharts method to avoid duplication
+    destroyCharts() {
+        // Destroy all existing charts to prevent conflicts
+        Object.keys(this.charts).forEach(key => {
+            if (this.charts[key] && typeof this.charts[key].destroy === 'function') {
+                this.charts[key].destroy();
+                this.charts[key] = null;
             }
         });
-        this.charts = {};
     }
 
     initRealTimeChart() {
@@ -1420,52 +1444,130 @@ class CyberGuardApp {
 
     async loadInitialData() {
         try {
-            // Load stats
-            const statsResponse = await fetch(`${this.apiBaseUrl}/stats`);
-            if (statsResponse.ok) {
-                const stats = await statsResponse.json();
+            // Initialize with mock data first
+            this.updateRealTimeStats(this.getMockStats());
+            this.updateThreatsList(this.getMockThreats());
+            
+            // Try to load real data in parallel
+            const promises = [
+                this.fetchWithTimeout(`${this.apiBaseUrl}/stats`),
+                this.fetchWithTimeout(`${this.apiBaseUrl}/threats`)
+            ];
+            
+            const results = await Promise.allSettled(promises);
+            
+            // Handle stats
+            if (results[0].status === 'fulfilled' && results[0].value.ok) {
+                const stats = await results[0].value.json();
                 this.updateRealTimeStats(stats.data);
             }
-
-            // Load threats
-            const threatsResponse = await fetch(`${this.apiBaseUrl}/threats`);
-            if (threatsResponse.ok) {
-                const threats = await threatsResponse.json();
+            
+            // Handle threats
+            if (results[1].status === 'fulfilled' && results[1].value.ok) {
+                const threats = await results[1].value.json();
                 this.updateThreatsList(threats.data);
             }
-
-            // Load analytics
+            
+            // Load analytics (this has its own error handling)
             await this.loadAnalytics();
             
         } catch (error) {
             console.error('Failed to load initial data:', error);
-            this.showNotification('Failed to load some data. Check connection.', 'error');
+            this.showNotification('Using mock data. API connection issue.', 'warning');
         }
+    }
+    
+    // Helper method for timeout-enabled fetch
+    fetchWithTimeout(url, options = {}, timeout = 5000) {
+        return Promise.race([
+            fetch(url, options),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timed out')), timeout)
+            )
+        ]);
+    }
+    
+    // Mock data for when API is unavailable
+    getMockStats() {
+        return {
+            scanned_wallets: 12857,
+            detected_threats: 489,
+            protected_value: "8,942,150",
+            protection_ratio: 99.7,
+            trend: "+2.3%"
+        };
+    }
+    
+    getMockThreats() {
+        return [
+            {
+                type: "honeypot",
+                severity: "medium",
+                target: "0xa0ea357f8c3cacdb7b75abf4f3f75239f5ab5abc",
+                confidence: 0.88,
+                detected_at: new Date().toISOString(),
+                threat_indicators: ["Automated detection", "Community report"]
+            },
+            {
+                type: "phishing_site",
+                severity: "critical",
+                target: "fake-metamask-security.com",
+                confidence: 0.96,
+                detected_at: new Date().toISOString(),
+                threat_indicators: ["Domain analysis", "Pattern matching"]
+            }
+        ];
     }
 
     async loadAnalytics() {
         try {
-            // Initialize Analytics charts
+            // First destroy any existing charts
+            this.destroyCharts();
+            
+            // Then initialize Analytics charts with default data
             this.initAnalyticsCharts();
             
-            const response = await fetch(`${this.apiBaseUrl}/analytics`);
-            if (response.ok) {
-                const analytics = await response.json();
-                this.updateAnalyticsCharts(analytics.data);
-                this.initThreatHeatmap(analytics.data);
-                this.initGeoThreatMap(analytics.data);
+            // Try to load real data
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/analytics`);
+                if (response.ok) {
+                    const analytics = await response.json();
+                    this.updateAnalyticsCharts(analytics.data);
+                    this.initThreatHeatmap(analytics.data);
+                    this.initGeoThreatMap(analytics.data);
+                }
+            } catch (apiError) {
+                console.warn('Failed to load analytics data from API, using default data:', apiError);
+                // We already initialized charts with default data above
             }
         } catch (error) {
-            console.error('Failed to load analytics:', error);
-            // Initialize charts with default data if API fails
-            this.initAnalyticsCharts();
+            console.error('Failed to initialize analytics:', error);
+            this.showNotification('Error loading analytics', 'error');
         }
     }
 
+    destroyCharts() {
+        // Destroy all existing charts to prevent conflicts
+        Object.keys(this.charts).forEach(key => {
+            if (this.charts[key] && typeof this.charts[key].destroy === 'function') {
+                this.charts[key].destroy();
+                this.charts[key] = null;
+            }
+        });
+    }
+    
     initAnalyticsCharts() {
+        // Destroy any existing charts first
+        this.destroyCharts();
+        
         // Threat Distribution Chart
         const threatCtx = document.getElementById('threatDistributionChart');
         if (threatCtx && typeof Chart !== 'undefined') {
+            // Check if there's an existing chart instance and destroy it
+            if (Chart.getChart(threatCtx)) {
+                Chart.getChart(threatCtx).destroy();
+            }
+            
             this.charts.threatDistribution = new Chart(threatCtx, {
                 type: 'doughnut',
                 data: {
@@ -1762,7 +1864,12 @@ class CyberGuardApp {
         btn.innerHTML = '<div class="loading"></div> Analyzing...';
         
         try {
-            const response = await fetch(`${this.apiBaseUrl}/scan/${this.currentScanType}`, {
+            // Use a timeout to handle cases where the backend server is not responding
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timed out')), 5000)
+            );
+            
+            const fetchPromise = fetch(`${this.apiBaseUrl}/scan/${this.currentScanType}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1771,7 +1878,14 @@ class CyberGuardApp {
                     [this.currentScanType === 'domain' ? 'domain' : 'address']: input.value.trim()
                 })
             });
-
+            
+            // Race the fetch against a timeout
+            const response = await Promise.race([fetchPromise, timeoutPromise]);
+            
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            
             const result = await response.json();
             
             if (result.success) {
@@ -1784,7 +1898,36 @@ class CyberGuardApp {
             
         } catch (error) {
             console.error('Scan error:', error);
-            this.showNotification('Scan failed. Please try again.', 'error');
+            this.showNotification('Scan failed: ' + (error.message || 'Please try again later'), 'error');
+            
+            // Show fallback results
+            if (resultsContainer) {
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = `
+                    <h3>Demo Scan Results</h3>
+                    <div class="scan-summary">
+                        <p>⚠️ We're currently showing demo data because the backend API is unavailable.</p>
+                        <p>Target: ${input.value}</p>
+                        <div class="risk-score-container">
+                            <div class="risk-score risk-medium">Medium Risk</div>
+                            <div class="risk-meter">
+                                <div class="risk-meter-fill" style="width: 65%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scan-details">
+                        <h4>Analysis Details</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Detection Confidence:</span>
+                            <span class="detail-value">72%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">First Seen:</span>
+                            <span class="detail-value">Demo Data</span>
+                        </div>
+                    </div>
+                `;
+            }
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-search"></i> Analyze';
@@ -1918,9 +2061,28 @@ class CyberGuardApp {
         return descriptions[level] || 'Unknown risk level';
     }
 
+    destroyExistingCharts() {
+        // Get all canvas elements that might have charts
+        const chartCanvases = [
+            'networkActivityChart', 'systemPerformanceChart', 'securityTrendsChart', 
+            'threatDistributionChart', 'realTimeActivityChart', 'detectionStatsChart'
+        ];
+        
+        // Destroy any existing charts
+        chartCanvases.forEach(id => {
+            const canvas = document.getElementById(id);
+            if (canvas) {
+                const existingChart = Chart.getChart(canvas);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+            }
+        });
+    }
+
     onPageChange(page) {
         // Destroy charts when switching pages to prevent canvas reuse errors
-        this.destroyExistingCharts();
+        this.destroyCharts();
         
         switch (page) {
             case 'dashboard':

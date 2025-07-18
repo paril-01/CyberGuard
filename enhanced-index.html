@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.cloudflareaccess.com https://*.cloudflarecdn.com https://*.cloudflare.com">
     <title>CyberGuard - Advanced Crypto Security Platform</title>
     <link rel="stylesheet" href="enhanced-styles.css">
     <link rel="stylesheet" href="horizontal-layout-fixed.css">
@@ -34,10 +35,28 @@
         .threat-stat-danger { color: var(--cyber-danger-red); }
     </style>
     <!-- 3D and Visualization Libraries -->
-    <!-- Three.js - Global build for compatibility -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
+    <!-- Load libraries with error handling -->
+    <script>
+        // Error handler for script loading
+        function handleScriptError(scriptSrc, callback) {
+            const script = document.createElement('script');
+            script.src = scriptSrc;
+            script.async = true;
+            script.onload = () => callback(null);
+            script.onerror = () => callback(new Error(`Failed to load ${scriptSrc}`));
+            document.head.appendChild(script);
+        }
+        
+        // Pre-load Three.js with error handling
+        handleScriptError("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js", function(err) {
+            if (err) {
+                console.warn("⚠️ Three.js failed to load:", err);
+            } else {
+                console.log("✅ Three.js loaded successfully");
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
     <script src="https://unpkg.com/d3@7"></script>
     <script src="simple-chart.js"></script>
     <script src="network-legend.js"></script>
